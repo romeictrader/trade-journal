@@ -189,20 +189,23 @@ export default function AccountDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddTrade, setShowAddTrade] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [resetUtcHour, setResetUtcHour] = useState(22);
 
   const load = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
-    const [{ data: accData }, { data: tradesData }] = await Promise.all([
+    const [{ data: accData }, { data: tradesData }, { data: settingsData }] = await Promise.all([
       supabase.from("accounts").select("*").eq("id", id).eq("user_id", user.id).single(),
       supabase.from("trades").select("*").eq("account_id", id).order("date", { ascending: true }),
+      supabase.from("journal_settings").select("daily_reset_utc_hour").eq("user_id", user.id).single(),
     ]);
 
     if (!accData) { router.push("/"); return; }
     setAccount(accData);
     setTrades(tradesData ?? []);
+    if (settingsData?.daily_reset_utc_hour != null) setResetUtcHour(settingsData.daily_reset_utc_hour);
     setLoading(false);
   }, [id, router]);
 
@@ -223,11 +226,12 @@ export default function AccountDashboard() {
   if (!account) return null;
 
   const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
-  // Daily loss resets at 5am SGT (UTC+8). If current SGT time < 5am, trading day is still "yesterday SGT".
-  const nowSGT = new Date(Date.now() + 8 * 60 * 60 * 1000);
-  const tradingDate = nowSGT.getUTCHours() < 5
-    ? new Date(nowSGT.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-    : nowSGT.toISOString().split("T")[0];
+  // Daily loss resets at user-configured UTC hour (default 22 = 5pm ET).
+  // If current UTC hour < resetUtcHour, we're still in the previous trading day.
+  const nowUtc = new Date();
+  const tradingDate = nowUtc.getUTCHours() < resetUtcHour
+    ? new Date(nowUtc.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    : nowUtc.toISOString().split("T")[0];
   const todayPnl = trades.filter((t) => t.date === tradingDate).reduce((s, t) => s + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const losses = trades.filter((t) => t.pnl < 0).length;

@@ -215,17 +215,20 @@ export default function AccountDashboard() {
   useEffect(() => {
     let lastTradingDate: string | null = null;
 
-    function getTradingDate(resetHour: number) {
+    function getTradingDate() {
       const now = new Date();
-      return now.getUTCHours() < resetHour
-        ? new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-        : now.toISOString().split("T")[0];
+      const nyStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+      const nyDate = new Date(nyStr);
+      const nyDateStr = `${nyDate.getFullYear()}-${String(nyDate.getMonth()+1).padStart(2,"0")}-${String(nyDate.getDate()).padStart(2,"0")}`;
+      if (nyDate.getHours() < 17) return nyDateStr;
+      const tomorrow = new Date(nyDate.getTime() + 24 * 60 * 60 * 1000);
+      return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,"0")}-${String(tomorrow.getDate()).padStart(2,"0")}`;
     }
 
-    lastTradingDate = getTradingDate(resetUtcHour);
+    lastTradingDate = getTradingDate();
 
     const interval = setInterval(() => {
-      const current = getTradingDate(resetUtcHour);
+      const current = getTradingDate();
       if (lastTradingDate && current !== lastTradingDate) {
         lastTradingDate = current;
         load(); // reload trades so daily loss resets to $0
@@ -250,12 +253,26 @@ export default function AccountDashboard() {
   if (!account) return null;
 
   const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
-  // Daily loss resets at user-configured UTC hour (default 22 = 5pm ET).
-  // If current UTC hour < resetUtcHour, we're still in the previous trading day.
-  const nowUtc = new Date();
-  const tradingDate = nowUtc.getUTCHours() < resetUtcHour
-    ? new Date(nowUtc.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-    : nowUtc.toISOString().split("T")[0];
+  // Daily loss resets at 5:00 PM New York time (handles DST automatically).
+  function getNYTradingDate() {
+    const now = new Date();
+    // Get current time in New York
+    const nyStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+    const nyDate = new Date(nyStr);
+    // If before 5pm NY, trading day is today NY date; if after 5pm NY, it's tomorrow's session (still today's date for daily loss)
+    const nyHour = nyDate.getHours();
+    // Trading day = NY calendar date if before 5pm, else still the same NY date (next session starts after 5pm)
+    // Daily loss counts trades on the current NY calendar date up until 5pm reset
+    const nyDateStr = `${nyDate.getFullYear()}-${String(nyDate.getMonth()+1).padStart(2,"0")}-${String(nyDate.getDate()).padStart(2,"0")}`;
+    if (nyHour < 17) {
+      return nyDateStr;
+    } else {
+      // After 5pm NY — new session started, daily loss resets, count next NY date
+      const tomorrow = new Date(nyDate.getTime() + 24 * 60 * 60 * 1000);
+      return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,"0")}-${String(tomorrow.getDate()).padStart(2,"0")}`;
+    }
+  }
+  const tradingDate = getNYTradingDate();
   const todayPnl = trades.filter((t) => t.date === tradingDate).reduce((s, t) => s + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const losses = trades.filter((t) => t.pnl < 0).length;

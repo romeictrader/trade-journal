@@ -54,8 +54,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
   const monthPnl = trades.filter(t => t.date.startsWith(monthPfx)).reduce((s, t) => s + t.pnl, 0);
 
   function getCellBg(pnl: number) {
-    if (pnl > 0) return pnl > 500 ? "#1a4d2e" : pnl > 200 ? "#163d24" : "#0f2d1a";
-    return pnl < -500 ? "#4d1a1a" : pnl < -200 ? "#3d1616" : "#2d0f0f";
+    if (pnl > 0) return "#0d1f14";
+    return "#1f0d0d";
   }
 
   // Compute all week stats upfront
@@ -310,7 +310,7 @@ export default function AccountDashboard() {
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
                   <span style={{ color: "#888" }}>{rule.label}</span>
                   <span style={{ fontWeight: 600 }}>
-                    <span style={{ color: "#fff" }}>${rule.current.toFixed(0)}</span>
+                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : "#fff") }}>${rule.current.toFixed(0)}</span>
                     <span style={{ color: "#555" }}> / </span>
                     <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toFixed(0)}</span>
                   </span>

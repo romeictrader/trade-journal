@@ -88,15 +88,8 @@ export default function CalendarPage() {
   }
 
   function getCellBg(pnl: number) {
-    if (pnl > 0) {
-      if (pnl > 500) return "#1a4d2e";
-      if (pnl > 200) return "#163d24";
-      return "#0f2d1a";
-    } else {
-      if (pnl < -500) return "#4d1a1a";
-      if (pnl < -200) return "#3d1616";
-      return "#2d0f0f";
-    }
+    if (pnl > 0) return "#0d1f14";
+    return "#1f0d0d";
   }
 
   function getCellBorder(pnl: number, isToday: boolean, isSelected: boolean) {

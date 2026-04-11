@@ -85,15 +85,15 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
       {/* Weeks */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {weeks.map((week, wi) => {
-          const weekPnl = week.reduce((s, day) => {
+          const weekPnl = week.reduce((s: number, day) => {
             if (!day) return s;
             const stat = dailyMap[ds(day)];
             return s + (stat?.pnl ?? 0);
-          }, 0);
-          const weekCount = week.reduce((s, day) => {
+          }, 0 as number);
+          const weekCount = week.reduce((s: number, day) => {
             if (!day) return s;
             return s + (dailyMap[ds(day)]?.count ?? 0);
-          }, 0);
+          }, 0 as number);
 
           return (
             <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", gap: 2 }}>

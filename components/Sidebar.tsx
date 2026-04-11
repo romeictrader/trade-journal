@@ -52,7 +52,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         left: 0,
         height: "100vh",
         width,
-        background: "#111111",
+        background: "#0e0e14",
         borderRight: "1px solid #222",
         display: "flex",
         flexDirection: "column",
@@ -87,12 +87,12 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             flexShrink: 0,
           }}
         >
-          TJ
+          1:1
         </div>
         {!collapsed && (
           <div>
             <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
-              Trade Journal
+              One To One Journal
             </div>
             <div style={{ fontSize: 10, color: "#888" }}>Pro Edition</div>
           </div>

@@ -5,7 +5,7 @@ export default async function RootPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    redirect("/accounts");
+    redirect("/trades");
   } else {
     redirect("/login");
   }

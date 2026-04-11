@@ -223,8 +223,12 @@ export default function AccountDashboard() {
   if (!account) return null;
 
   const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
-  const today = new Date().toISOString().split("T")[0];
-  const todayPnl = trades.filter((t) => t.date === today).reduce((s, t) => s + t.pnl, 0);
+  // Daily loss resets at 5am SGT (UTC+8). If current SGT time < 5am, trading day is still "yesterday SGT".
+  const nowSGT = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  const tradingDate = nowSGT.getUTCHours() < 5
+    ? new Date(nowSGT.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    : nowSGT.toISOString().split("T")[0];
+  const todayPnl = trades.filter((t) => t.date === tradingDate).reduce((s, t) => s + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const losses = trades.filter((t) => t.pnl < 0).length;
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;

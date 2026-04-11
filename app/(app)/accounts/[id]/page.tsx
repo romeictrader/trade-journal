@@ -69,8 +69,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
         <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
           <ChevronRight size={14} />
         </button>
-        <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-          {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
+        <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+          Monthly P&L: {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
         </span>
       </div>
 
@@ -98,7 +98,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
           return (
             <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", gap: 2 }}>
               {week.map((day, di) => {
-                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: 52 }} />;
+                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: 80 }} />;
                 const iso = ds(day);
                 const stat = dailyMap[iso];
                 const hasTrades = !!stat;
@@ -114,7 +114,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                       border: isSelected || isToday2 ? `1px solid ${color}` : "1px solid #1e1e1e",
                       borderRadius: 3,
                       padding: "5px 6px",
-                      minHeight: 52,
+                      minHeight: 80,
                       cursor: hasTrades ? "pointer" : "default",
                       display: "flex",
                       flexDirection: "column",
@@ -122,13 +122,13 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                     onMouseEnter={e => { if (hasTrades) (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
                   >
-                    <div style={{ fontSize: 10, color: isToday2 ? color : "#666", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
+                    <div style={{ fontSize: 12, color: isToday2 ? color : "#666", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
                     {hasTrades && (
                       <>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: stat.pnl >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
-                          {stat.pnl >= 0 ? `$${stat.pnl.toFixed(0)}` : `-$${Math.abs(stat.pnl).toFixed(0)}`}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: stat.pnl >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
+                          {stat.pnl >= 0 ? `$${stat.pnl.toFixed(2)}` : `-$${Math.abs(stat.pnl).toFixed(2)}`}
                         </div>
-                        <div style={{ fontSize: 9, color: "#666" }}>{stat.count}t</div>
+                        <div style={{ fontSize: 10, color: "#666" }}>{stat.count} trade{stat.count !== 1 ? "s" : ""}</div>
                       </>
                     )}
                   </div>
@@ -136,7 +136,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
               })}
 
               {/* Week summary */}
-              <div style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 3, padding: "5px 6px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 52 }}>
+              <div style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 3, padding: "5px 6px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
                 <div style={{ fontSize: 9, color: "#444", fontWeight: 600, marginBottom: 2 }}>Wk {wi + 1}</div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: weekCount === 0 ? "#333" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
                   {weekCount === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}

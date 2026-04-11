@@ -216,25 +216,6 @@ export default function DashboardPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Accounts Overview</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All prop firm accounts in one place</p>
         </div>
-        <button
-          onClick={() => setShowAddAccount(true)}
-          style={{
-            background: "#c9a84c",
-            border: "none",
-            borderRadius: 8,
-            color: "#000",
-            fontWeight: 700,
-            fontSize: 13,
-            padding: "10px 18px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <Plus size={15} />
-          Add Account
-        </button>
       </div>
 
 

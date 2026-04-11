@@ -24,12 +24,13 @@ function Skeleton({ width, height }: { width?: string | number; height?: string 
 function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: Trade[]; color: string; selectedDate: string | null; onSelectDate: (d: string | null) => void }) {
   const [viewMonth, setViewMonth] = useState(new Date());
 
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
   const monthStart = startOfMonth(viewMonth);
-  const monthEnd = endOfMonth(viewMonth);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startDow = getDay(monthStart);
+  const daysInMonth = endOfMonth(viewMonth).getDate();
+  const todayStr = new Date().toISOString().split("T")[0];
 
-  // Build daily stats
   const dailyMap: Record<string, { pnl: number; count: number }> = {};
   for (const t of trades) {
     if (!dailyMap[t.date]) dailyMap[t.date] = { pnl: 0, count: 0 };
@@ -37,72 +38,111 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
     dailyMap[t.date].count += 1;
   }
 
+  function ds(d: number) {
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+
+  const cells: (number | null)[] = [
+    ...Array(startDow).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  const monthPfx = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthPnl = trades.filter(t => t.date.startsWith(monthPfx)).reduce((s, t) => s + t.pnl, 0);
+
+  function getCellBg(pnl: number) {
+    if (pnl > 0) return pnl > 500 ? "#1a4d2e" : pnl > 200 ? "#163d24" : "#0f2d1a";
+    return pnl < -500 ? "#4d1a1a" : pnl < -200 ? "#3d1616" : "#2d0f0f";
+  }
+
   return (
     <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-      {/* Month nav */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <h3 style={{ margin: 0, fontSize: 14, color: "#888", fontWeight: 600 }}>Calendar</h3>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}>
-            <ChevronLeft size={14} />
-          </button>
-          <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>{format(viewMonth, "MMMM yyyy")}</span>
-          <button onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}>
-            <ChevronRight size={14} />
-          </button>
-        </div>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+          <ChevronLeft size={14} />
+        </button>
+        <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>{format(viewMonth, "MMM yyyy")}</span>
+        <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+          <ChevronRight size={14} />
+        </button>
+        <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+          {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
+        </span>
       </div>
 
-      {/* Day labels */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 4 }}>
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} style={{ fontSize: 10, color: "#444", textAlign: "center", padding: "4px 0", fontWeight: 600 }}>{d}</div>
+      {/* Day headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", marginBottom: 2 }}>
+        {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
+          <div key={d} style={{ fontSize: 10, color: "#444", textAlign: "center", padding: "3px 0", fontWeight: 600 }}>{d}</div>
         ))}
+        <div />
       </div>
 
-      {/* Days */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-        {Array.from({ length: startDow }).map((_, i) => <div key={`e-${i}`} />)}
-        {days.map((day) => {
-          const iso = day.toISOString().split("T")[0];
-          const stats = dailyMap[iso];
-          const todayDay = isToday(day);
-          const inMonth = isSameMonth(day, viewMonth);
-          const hasTrades = !!stats;
-          const isWin = hasTrades && stats.pnl > 0;
-          const isLoss = hasTrades && stats.pnl < 0;
+      {/* Weeks */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {weeks.map((week, wi) => {
+          const weekPnl = week.reduce((s, day) => {
+            if (!day) return s;
+            const stat = dailyMap[ds(day)];
+            return s + (stat?.pnl ?? 0);
+          }, 0);
+          const weekCount = week.reduce((s, day) => {
+            if (!day) return s;
+            return s + (dailyMap[ds(day)]?.count ?? 0);
+          }, 0);
 
-          const isSelected = selectedDate === iso;
           return (
-            <div
-              key={iso}
-              onClick={() => hasTrades ? onSelectDate(isSelected ? null : iso) : undefined}
-              style={{
-                borderRadius: 8,
-                padding: "6px 4px",
-                minHeight: 58,
-                background: isSelected ? (isWin ? "#22c55e22" : "#ef444422") : hasTrades ? (isWin ? "#22c55e0d" : "#ef44440d") : "#0a0a0a",
-                border: `1px solid ${isSelected ? (isWin ? "#22c55e88" : "#ef444488") : todayDay ? color : hasTrades ? (isWin ? "#22c55e33" : "#ef444433") : "#1a1a1a"}`,
-                opacity: inMonth ? 1 : 0.3,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                cursor: hasTrades ? "pointer" : "default",
-              }}
-            >
-              <div style={{ fontSize: 11, color: todayDay ? color : "#555", fontWeight: todayDay ? 700 : 400, textAlign: "right", paddingRight: 2 }}>
-                {day.getDate()}
+            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", gap: 2 }}>
+              {week.map((day, di) => {
+                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: 52 }} />;
+                const iso = ds(day);
+                const stat = dailyMap[iso];
+                const hasTrades = !!stat;
+                const isSelected = selectedDate === iso;
+                const isToday2 = iso === todayStr;
+
+                return (
+                  <div
+                    key={iso}
+                    onClick={() => hasTrades ? onSelectDate(isSelected ? null : iso) : undefined}
+                    style={{
+                      background: hasTrades ? getCellBg(stat.pnl) : "#111",
+                      border: isSelected || isToday2 ? `1px solid ${color}` : "1px solid #1e1e1e",
+                      borderRadius: 3,
+                      padding: "5px 6px",
+                      minHeight: 52,
+                      cursor: hasTrades ? "pointer" : "default",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                    onMouseEnter={e => { if (hasTrades) (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
+                  >
+                    <div style={{ fontSize: 10, color: isToday2 ? color : "#666", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
+                    {hasTrades && (
+                      <>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: stat.pnl >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
+                          {stat.pnl >= 0 ? `$${stat.pnl.toFixed(0)}` : `-$${Math.abs(stat.pnl).toFixed(0)}`}
+                        </div>
+                        <div style={{ fontSize: 9, color: "#666" }}>{stat.count}t</div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Week summary */}
+              <div style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 3, padding: "5px 6px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 52 }}>
+                <div style={{ fontSize: 9, color: "#444", fontWeight: 600, marginBottom: 2 }}>Wk {wi + 1}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: weekCount === 0 ? "#333" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+                  {weekCount === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
+                </div>
+                <div style={{ fontSize: 9, color: "#444", marginTop: 1 }}>{weekCount}t</div>
               </div>
-              {hasTrades && (
-                <>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: isWin ? "#22c55e" : "#ef4444", textAlign: "center" }}>
-                    {isWin ? "+" : ""}{stats.pnl.toFixed(0)}
-                  </div>
-                  <div style={{ fontSize: 10, color: "#555", textAlign: "center" }}>
-                    {stats.count} trade{stats.count !== 1 ? "s" : ""}
-                  </div>
-                </>
-              )}
             </div>
           );
         })}

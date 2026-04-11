@@ -279,13 +279,12 @@ export default function AccountDashboard() {
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
   const balance = account.starting_balance + totalPnl;
 
-  let peak = 0, maxDD = 0, running = 0;
+  let peak = 0, running = 0;
   for (const t of trades) {
     running += t.pnl;
     if (running > peak) peak = running;
-    const dd = peak - running;
-    if (dd > maxDD) maxDD = dd;
   }
+  const maxDD = Math.max(0, peak - running); // current drawdown from peak (decreases when you profit)
 
   const rrTrades = trades.filter((t) => t.rr != null);
   const avgRR = rrTrades.length > 0 ? rrTrades.reduce((s, t) => s + (t.rr ?? 0), 0) / rrTrades.length : 0;
@@ -308,7 +307,7 @@ export default function AccountDashboard() {
   const ruleItems = [
     { label: "Daily Loss", current: Math.abs(Math.min(todayPnl, 0)), limit: account.daily_loss_limit, inverted: true },
     { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
-    { label: "Profit Target", current: Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
+    { label: "Profit Target", current: totalPnl, limit: account.profit_target, inverted: false },
   ];
 
   const recentTrades = [...trades].reverse().slice(0, 10);
@@ -353,14 +352,14 @@ export default function AccountDashboard() {
         <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {ruleItems.map((rule) => {
-            const pct = Math.min((rule.current / rule.limit) * 100, 100);
+            const pct = Math.min(Math.max((rule.current / rule.limit) * 100, 0), 100);
             const passing = rule.inverted ? rule.current < rule.limit : rule.current >= rule.limit;
             return (
               <div key={rule.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
                   <span style={{ color: "#888" }}>{rule.label}</span>
                   <span style={{ fontWeight: 600 }}>
-                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : "#fff") }}>${rule.current.toFixed(0)}</span>
+                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : rule.current < 0 ? "#ef4444" : "#fff") }}>{rule.current < 0 ? `-$${Math.abs(rule.current).toFixed(0)}` : `$${rule.current.toFixed(0)}`}</span>
                     <span style={{ color: "#555" }}> / </span>
                     <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toFixed(0)}</span>
                   </span>

@@ -25,7 +25,7 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/trades");
+      router.push("/home");
       router.refresh();
     }
   }

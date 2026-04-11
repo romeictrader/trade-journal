@@ -23,7 +23,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { label: "Accounts", icon: Briefcase, href: "/" },
+  { label: "Accounts", icon: Briefcase, href: "/home" },
   { label: "Trade Log", icon: BookOpen, href: "/trades" },
   { label: "Combined Calendar", icon: Calendar, href: "/calendar" },
   { label: "Journal", icon: FileText, href: "/journal" },

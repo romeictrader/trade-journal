@@ -264,7 +264,7 @@ export default function AccountDashboard() {
   const recentTrades = [...trades].reverse().slice(0, 10);
 
   return (
-    <div style={{ padding: 24, maxWidth: 1400 }}>
+    <div style={{ padding: 24 }}>
       <style>{`@keyframes pulse { 0%,100%{background-position:200% 0} 50%{background-position:-200% 0} }`}</style>
 
       {/* Header */}

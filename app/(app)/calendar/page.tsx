@@ -103,7 +103,7 @@ export default function CalendarPage() {
       <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, position: "relative" }}>
           <button onClick={prevMonth} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
             <ChevronLeft size={18} />
           </button>
@@ -113,8 +113,9 @@ export default function CalendarPage() {
           <button onClick={nextMonth} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
             <ChevronRight size={18} />
           </button>
-          <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-            Monthly P&L: {monthPnl >= 0 ? "+" : ""}${monthPnl.toFixed(2)}
+          <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+            <span style={{ color: "#fff" }}>Monthly P&L: </span>
+            <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
           </span>
           <button
             onClick={() => { setYear(new Date().getFullYear()); setMonth(new Date().getMonth()); }}

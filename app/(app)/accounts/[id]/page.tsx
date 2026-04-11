@@ -76,16 +76,17 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
       {/* Calendar side */}
       <div style={{ flex: 1 }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 12, position: "relative" }}>
           <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
             <ChevronLeft size={14} />
           </button>
-          <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>{format(viewMonth, "MMM yyyy")}</span>
+          <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600, marginRight: 4 }}>{format(viewMonth, "MMM yyyy")}</span>
           <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
             <ChevronRight size={14} />
           </button>
-          <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-            Monthly P&L: {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
+          <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+            <span style={{ color: "#fff" }}>Monthly P&L: </span>
+            <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
           </span>
         </div>
 

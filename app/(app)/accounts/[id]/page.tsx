@@ -287,7 +287,7 @@ export default function AccountDashboard() {
       {/* Balance bar */}
       <div style={{ background: "#111", border: `1px solid #222`, borderTop: `3px solid ${account.color}`, borderRadius: 12, padding: "20px", marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
         {[
-          { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: "#fff" },
+          { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff" },
           { label: "Total P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
           { label: "Max Drawdown", value: `$${maxDD.toFixed(2)}`, color: maxDD > account.max_drawdown * 0.8 ? "#ef4444" : "#fff" },
         ].map((item) => (
@@ -309,7 +309,11 @@ export default function AccountDashboard() {
               <div key={rule.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
                   <span style={{ color: "#888" }}>{rule.label}</span>
-                  <span style={{ color: passing ? "#22c55e" : "#ef4444", fontWeight: 600 }}>${rule.current.toFixed(0)} / ${rule.limit.toFixed(0)}</span>
+                  <span style={{ fontWeight: 600 }}>
+                    <span style={{ color: "#fff" }}>${rule.current.toFixed(0)}</span>
+                    <span style={{ color: "#555" }}> / </span>
+                    <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toFixed(0)}</span>
+                  </span>
                 </div>
                 <div style={{ background: "#222", borderRadius: 4, height: 6 }}>
                   <div style={{ height: 6, borderRadius: 4, width: `${pct}%`, background: rule.inverted ? (pct > 80 ? "#ef4444" : "#22c55e") : pct >= 100 ? "#22c55e" : "#c9a84c", transition: "width 0.3s" }} />

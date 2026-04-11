@@ -321,7 +321,7 @@ export default function AccountDashboard() {
                   </span>
                 </div>
                 <div style={{ background: "#222", borderRadius: 4, height: 6 }}>
-                  <div style={{ height: 6, borderRadius: 4, width: `${pct}%`, background: rule.inverted ? (pct > 80 ? "#ef4444" : "#22c55e") : pct >= 100 ? "#22c55e" : "#c9a84c", transition: "width 0.3s" }} />
+                  <div style={{ height: 6, borderRadius: 4, width: `${pct}%`, background: rule.inverted ? "#ef4444" : pct >= 100 ? "#22c55e" : "#c9a84c", transition: "width 0.3s" }} />
                 </div>
               </div>
             );

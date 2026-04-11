@@ -52,7 +52,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         left: 0,
         height: "100vh",
         width,
-        background: "#0e0e14",
+        background: "#111111",
         borderRight: "1px solid #222",
         display: "flex",
         flexDirection: "column",

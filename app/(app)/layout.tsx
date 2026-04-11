@@ -18,7 +18,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#13131a" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0a0a" }}>
       <Sidebar userEmail={user.email ?? ""} />
       <Header />
       <main

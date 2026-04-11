@@ -307,7 +307,7 @@ export default function AccountDashboard() {
   const ruleItems = [
     { label: "Daily Loss", current: Math.abs(Math.min(todayPnl, 0)), limit: account.daily_loss_limit, inverted: true },
     { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
-    { label: "Profit Target", current: totalPnl, limit: account.profit_target, inverted: false },
+    { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
   ];
 
   const recentTrades = [...trades].reverse().slice(0, 10);
@@ -359,7 +359,7 @@ export default function AccountDashboard() {
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
                   <span style={{ color: "#888" }}>{rule.label}</span>
                   <span style={{ fontWeight: 600 }}>
-                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : rule.current < 0 ? "#ef4444" : "#fff") }}>{rule.current < 0 ? `-$${Math.abs(rule.current).toFixed(0)}` : `$${rule.current.toFixed(0)}`}</span>
+                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : "#fff") }}>${rule.current.toFixed(0)}</span>
                     <span style={{ color: "#555" }}> / </span>
                     <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toFixed(0)}</span>
                   </span>

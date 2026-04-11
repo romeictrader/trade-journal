@@ -211,6 +211,30 @@ export default function AccountDashboard() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Real-time reset: check every minute if we've crossed the reset hour, reload trades if so
+  useEffect(() => {
+    let lastTradingDate: string | null = null;
+
+    function getTradingDate(resetHour: number) {
+      const now = new Date();
+      return now.getUTCHours() < resetHour
+        ? new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+        : now.toISOString().split("T")[0];
+    }
+
+    lastTradingDate = getTradingDate(resetUtcHour);
+
+    const interval = setInterval(() => {
+      const current = getTradingDate(resetUtcHour);
+      if (lastTradingDate && current !== lastTradingDate) {
+        lastTradingDate = current;
+        load(); // reload trades so daily loss resets to $0
+      }
+    }, 60 * 1000); // check every minute
+
+    return () => clearInterval(interval);
+  }, [resetUtcHour, load]);
+
   if (loading) {
     return (
       <div style={{ padding: 24 }}>

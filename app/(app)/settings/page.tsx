@@ -24,14 +24,6 @@ const DEFAULTS: JournalSettings = {
   daily_reset_utc_hour: 22,
 };
 
-// Common market reset presets (UTC hour)
-const RESET_PRESETS = [
-  { label: "CME Close — 5:00 PM ET (Winter/EST)", utc: 22 },
-  { label: "CME Close — 5:00 PM ET (Summer/EDT)", utc: 21 },
-  { label: "5:00 AM SGT (UTC+8)", utc: 21 },
-  { label: "6:00 PM ET (Winter/EST)", utc: 23 },
-  { label: "Midnight UTC", utc: 0 },
-];
 
 const TIMEZONES = [
   "America/New_York",
@@ -331,23 +323,6 @@ export default function SettingsPage() {
             style={inputStyle}
             min={1}
           />
-        </FieldRow>
-        <FieldRow label="Daily Loss Reset Time">
-          <select
-            value={settings.daily_reset_utc_hour}
-            onChange={(e) => setSettings((s) => ({ ...s, daily_reset_utc_hour: parseInt(e.target.value) }))}
-            style={selectStyle}
-          >
-            {RESET_PRESETS.map((p) => (
-              <option key={p.label} value={p.utc}>{p.label}</option>
-            ))}
-            {Array.from({ length: 24 }, (_, i) => i).map((h) => (
-              <option key={`utc-${h}`} value={h}>Custom — {String(h).padStart(2,"0")}:00 UTC</option>
-            ))}
-          </select>
-          <p style={{ fontSize: 11, color: "#555", margin: "6px 0 0" }}>
-            CME Futures closes at 5:00 PM ET daily (Mon–Fri). Daily loss resets at this time.
-          </p>
         </FieldRow>
       </Section>
 

@@ -58,45 +58,48 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
     return pnl < -500 ? "#4d1a1a" : pnl < -200 ? "#3d1616" : "#2d0f0f";
   }
 
+  // Compute all week stats upfront
+  const weekStats = weeks.map((week, wi) => {
+    const weekPnl = week.reduce((s: number, day) => {
+      if (!day) return s;
+      return s + (dailyMap[ds(day)]?.pnl ?? 0);
+    }, 0 as number);
+    const weekCount = week.reduce((s: number, day) => {
+      if (!day) return s;
+      return s + (dailyMap[ds(day)]?.count ?? 0);
+    }, 0 as number);
+    return { wi, weekPnl, weekCount };
+  });
+
   return (
-    <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
-          <ChevronLeft size={14} />
-        </button>
-        <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>{format(viewMonth, "MMM yyyy")}</span>
-        <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
-          <ChevronRight size={14} />
-        </button>
-        <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-          Monthly P&L: {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
-        </span>
-      </div>
+    <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20, display: "flex", gap: 16 }}>
+      {/* Calendar side */}
+      <div style={{ flex: 1 }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+            <ChevronLeft size={14} />
+          </button>
+          <span style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>{format(viewMonth, "MMM yyyy")}</span>
+          <button onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+            <ChevronRight size={14} />
+          </button>
+          <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: monthPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+            Monthly P&L: {monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}
+          </span>
+        </div>
 
-      {/* Day headers */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", marginBottom: 2 }}>
-        {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
-          <div key={d} style={{ fontSize: 10, color: "#444", textAlign: "center", padding: "3px 0", fontWeight: 600 }}>{d}</div>
-        ))}
-        <div />
-      </div>
+        {/* Day headers */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 2 }}>
+          {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
+            <div key={d} style={{ fontSize: 10, color: "#444", textAlign: "center", padding: "3px 0", fontWeight: 600 }}>{d}</div>
+          ))}
+        </div>
 
-      {/* Weeks */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {weeks.map((week, wi) => {
-          const weekPnl = week.reduce((s: number, day) => {
-            if (!day) return s;
-            const stat = dailyMap[ds(day)];
-            return s + (stat?.pnl ?? 0);
-          }, 0 as number);
-          const weekCount = week.reduce((s: number, day) => {
-            if (!day) return s;
-            return s + (dailyMap[ds(day)]?.count ?? 0);
-          }, 0 as number);
-
-          return (
-            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 70px", gap: 2 }}>
+        {/* Weeks */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {weeks.map((week, wi) => (
+            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
               {week.map((day, di) => {
                 if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: 80 }} />;
                 const iso = ds(day);
@@ -110,10 +113,10 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                     key={iso}
                     onClick={() => hasTrades ? onSelectDate(isSelected ? null : iso) : undefined}
                     style={{
-                      background: hasTrades ? getCellBg(stat.pnl) : "#111",
+                      background: hasTrades ? getCellBg(stat.pnl) : "#0d0d0d",
                       border: isSelected || isToday2 ? `1px solid ${color}` : "1px solid #1e1e1e",
                       borderRadius: 3,
-                      padding: "5px 6px",
+                      padding: "6px 8px",
                       minHeight: 80,
                       cursor: hasTrades ? "pointer" : "default",
                       display: "flex",
@@ -122,7 +125,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                     onMouseEnter={e => { if (hasTrades) (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
                   >
-                    <div style={{ fontSize: 12, color: isToday2 ? color : "#666", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
+                    <div style={{ fontSize: 12, color: isToday2 ? color : "#555", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
                     {hasTrades && (
                       <>
                         <div style={{ fontSize: 13, fontWeight: 700, color: stat.pnl >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
@@ -134,18 +137,35 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                   </div>
                 );
               })}
-
-              {/* Week summary */}
-              <div style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 3, padding: "5px 6px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
-                <div style={{ fontSize: 9, color: "#444", fontWeight: 600, marginBottom: 2 }}>Wk {wi + 1}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: weekCount === 0 ? "#333" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-                  {weekCount === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
-                </div>
-                <div style={{ fontSize: 9, color: "#444", marginTop: 1 }}>{weekCount}t</div>
-              </div>
             </div>
-          );
-        })}
+          ))}
+        </div>
+      </div>
+
+      {/* Week summaries panel */}
+      <div style={{ width: 140, display: "flex", flexDirection: "column", gap: 2, paddingTop: 36 }}>
+        {weekStats.map(({ wi, weekPnl, weekCount }) => (
+          <div
+            key={wi}
+            style={{
+              flex: 1,
+              background: "#0d0d0d",
+              border: "1px solid #1a1a1a",
+              borderRadius: 6,
+              padding: "10px 12px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              minHeight: 80,
+            }}
+          >
+            <div style={{ fontSize: 10, color: "#444", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Week {wi + 1}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: weekCount === 0 ? "#333" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+              {weekCount === 0 ? "$0.00" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+            </div>
+            <div style={{ fontSize: 11, color: "#444", marginTop: 4 }}>{weekCount} trade{weekCount !== 1 ? "s" : ""}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -213,6 +213,7 @@ export default function CalendarPage() {
                         padding: isMobile ? "6px 7px" : "8px 10px",
                         cursor: "pointer",
                         minHeight: isMobile ? undefined : 80,
+                        overflow: isMobile ? "hidden" : undefined,
                         display: "flex",
                         flexDirection: "column",
                         transition: "filter 0.1s",
@@ -223,7 +224,7 @@ export default function CalendarPage() {
                       <div style={{ fontSize: isMobile ? 10 : 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: isMobile ? 2 : 6 }}>{day}</div>
                       {hasTrades && (
                         <>
-                          <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
+                          <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: isMobile ? 2 : "auto" }}>
                             {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
                           </div>
                           <div style={{ fontSize: isMobile ? 10 : 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>

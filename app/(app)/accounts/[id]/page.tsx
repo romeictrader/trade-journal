@@ -158,6 +158,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
                         borderRadius: 3,
                         padding: isMobile ? "6px 7px" : "6px 8px",
                         minHeight: isMobile ? undefined : 80,
+                        overflow: isMobile ? "hidden" : undefined,
                         cursor: hasTrades ? "pointer" : "default",
                         display: "flex",
                         flexDirection: "column",
@@ -168,7 +169,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
                       <div style={{ fontSize: 12, color: isToday2 ? color : "#555", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
                       {hasTrades && (
                         <>
-                          <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: stat.pnl > 0 ? "#4caf50" : stat.pnl < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
+                          <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: stat.pnl > 0 ? "#4caf50" : stat.pnl < 0 ? "#ef5350" : "#666", marginTop: isMobile ? 2 : "auto" }}>
                             {stat.pnl >= 0 ? `$${stat.pnl.toFixed(2)}` : `-$${Math.abs(stat.pnl).toFixed(2)}`}
                           </div>
                           <div style={{ fontSize: 10, color: "#666" }}>{stat.count} trade{stat.count !== 1 ? "s" : ""}</div>

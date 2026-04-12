@@ -31,7 +31,7 @@ export default function JournalPage() {
   const [userId, setUserId] = useState("");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [viewMonth, setViewMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; });
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [mode, setMode] = useState<"view" | "edit">("edit");
   const [mood, setMood] = useState(3);
@@ -243,7 +243,7 @@ export default function JournalPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
           {Array.from({ length: startDow }).map((_, i) => <div key={`e-${i}`} />)}
           {days.map((day) => {
-            const iso = day.toISOString().split("T")[0];
+            const iso = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,"0")}-${String(day.getDate()).padStart(2,"0")}`;
             const hasEntry = entryDates.has(iso);
             const isSelected = iso === selectedDate;
             const todayDay = isToday(day);
@@ -274,7 +274,7 @@ export default function JournalPage() {
         </div>
 
         <button
-          onClick={() => { setSelectedDate(new Date().toISOString().split("T")[0]); setMode("edit"); }}
+          onClick={() => { const d = new Date(); setSelectedDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`); setMode("edit"); }}
           style={{ marginTop: 16, width: "100%", background: "#c9a84c", border: "none", borderRadius: 8, color: "#000", fontWeight: 700, fontSize: 13, padding: "9px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
         >
           <Plus size={14} /> New Entry
@@ -395,7 +395,7 @@ export default function JournalPage() {
                 <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Narrative</div>
                 <textarea
                   value={narrative}
-                  onChange={(e) => { setNarrative(e.target.value); scheduleSave({ narrative: e.target.value }); }}
+                  onChange={(e) => { setNarrative(e.target.value); }}
                   placeholder="Write your trade narrative, market bias, key levels, planned setups..."
                   rows={6}
                   style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", lineHeight: 1.6, boxSizing: "border-box" }}
@@ -407,7 +407,7 @@ export default function JournalPage() {
                 <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Explanation / Review</div>
                 <textarea
                   value={explanation}
-                  onChange={(e) => { setExplanation(e.target.value); scheduleSave({ explanation: e.target.value }); }}
+                  onChange={(e) => { setExplanation(e.target.value); }}
                   placeholder="Post-session review — what went well, what went wrong, lessons learned..."
                   rows={6}
                   style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", lineHeight: 1.6, boxSizing: "border-box" }}

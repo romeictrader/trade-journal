@@ -208,13 +208,6 @@ export default function DashboardPage() {
               </div>
             </>
           )}
-          <button
-            onClick={() => setShowAddAccount(true)}
-            style={{ background: "#222", border: "1px solid #333", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-          >
-            <Plus size={15} />
-            Add Account
-          </button>
         </div>
       </div>
 

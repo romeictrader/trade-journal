@@ -55,7 +55,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
 
   function getCellBg(pnl: number) {
     if (pnl > 0) return "#0d1f14";
-    return "#1f0d0d";
+    if (pnl < 0) return "#1f0d0d";
+    return "#141414";
   }
 
   // Compute all week stats upfront
@@ -129,7 +130,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                     <div style={{ fontSize: 12, color: isToday2 ? color : "#555", fontWeight: isToday2 ? 700 : 400 }}>{day}</div>
                     {hasTrades && (
                       <>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: stat.pnl >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: stat.pnl > 0 ? "#4caf50" : stat.pnl < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
                           {stat.pnl >= 0 ? `$${stat.pnl.toFixed(2)}` : `-$${Math.abs(stat.pnl).toFixed(2)}`}
                         </div>
                         <div style={{ fontSize: 10, color: "#666" }}>{stat.count} trade{stat.count !== 1 ? "s" : ""}</div>

@@ -75,7 +75,8 @@ export default function AccountCalendarPage() {
 
   function getCellBg(pnl: number) {
     if (pnl > 0) return "#0d1f14";
-    return "#1f0d0d";
+    if (pnl < 0) return "#1f0d0d";
+    return "#141414";
   }
 
   return (
@@ -158,7 +159,7 @@ export default function AccountCalendarPage() {
                       <div style={{ fontSize: 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: 6 }}>{day}</div>
                       {hasTrades && (
                         <>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: dayPnl! >= 0 ? "#4caf50" : "#ef5350", marginTop: "auto" }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
                             {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
                           </div>
                           <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>

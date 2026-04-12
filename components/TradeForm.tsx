@@ -240,8 +240,9 @@ export default function TradeForm({ accountId, onSave, onCancel, initialTrade }:
       .from("journal-images")
       .upload(storagePath, file, { upsert: true });
     if (uploadErr) return null;
-    const { data: urlData } = supabase.storage.from("journal-images").getPublicUrl(storagePath);
-    return { url: urlData.publicUrl, storagePath, file };
+    const { data: urlData } = await supabase.storage.from("journal-images").createSignedUrl(storagePath, 3600);
+    if (!urlData?.signedUrl) return null;
+    return { url: urlData.signedUrl, storagePath, file };
   }
 
   async function handleFileSelect(files: FileList | null) {

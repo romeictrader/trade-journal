@@ -61,59 +61,31 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       borderTop: `3px solid ${account.color}`,
       borderRadius: 12,
     }}>
-      {/* Delete icon — top right */}
-      <button
-        onClick={() => {
-          if (confirm(`Delete account "${account.account_name}"? This cannot be undone.`)) {
-            onDelete(account.id);
-          }
-        }}
-        title="Delete account"
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          background: "none",
-          border: "none",
-          color: "#444",
-          cursor: "pointer",
-          padding: 4,
-          borderRadius: 6,
-          display: "flex",
-          alignItems: "center",
-          zIndex: 1,
-          transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
-      >
-        <Trash2 size={13} />
-      </button>
-
-      {/* Edit icon — bottom left (mirrors delete icon at top right) */}
-      <button
-        onClick={() => onEdit(account)}
-        title="Edit account"
-        style={{
-          position: "absolute",
-          bottom: 10,
-          left: 10,
-          background: "none",
-          border: "none",
-          color: "#666",
-          cursor: "pointer",
-          padding: 4,
-          borderRadius: 6,
-          display: "flex",
-          alignItems: "center",
-          zIndex: 2,
-          transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
-      >
-        <Pencil size={13} />
-      </button>
+      {/* Top-right icons: Edit (pencil) + Delete (trash) */}
+      <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 4, zIndex: 1 }}>
+        <button
+          onClick={() => onEdit(account)}
+          title="Edit account"
+          style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", transition: "color 0.15s" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+        >
+          <Pencil size={13} />
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`Delete account "${account.account_name}"? This cannot be undone.`)) {
+              onDelete(account.id);
+            }
+          }}
+          title="Delete account"
+          style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", transition: "color 0.15s" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
 
       {/* Card content — navigates to dashboard */}
       <Link

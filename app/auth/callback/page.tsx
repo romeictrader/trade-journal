@@ -1,40 +1,49 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 function CallbackHandler() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const [status, setStatus] = useState("Processing...");
 
   useEffect(() => {
     const supabase = createClient();
 
     async function handleCallback() {
       const code = searchParams.get("code");
+      setStatus(`Code: ${code ? code.substring(0, 20) + "..." : "NONE"}`);
 
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          setStatus(`Exchange error: ${error.message}`);
+          return;
+        }
+        if (data.session) {
+          setStatus("Session OK! Redirecting...");
           window.location.href = "/home";
           return;
         }
+        setStatus("Exchange succeeded but no session returned");
+        return;
       }
 
-      // Fallback: check for existing session (implicit/hash flow)
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        setStatus("Existing session found. Redirecting...");
         window.location.href = "/home";
       } else {
-        window.location.href = "/login";
+        setStatus("No code and no session. Going to login.");
+        setTimeout(() => { window.location.href = "/login"; }, 3000);
       }
     }
 
     handleCallback();
-  }, [router, searchParams]);
+  }, [searchParams]);
 
-  return null;
+  return <p style={{ color: "#aaa", fontSize: 13, marginTop: 12 }}>{status}</p>;
 }
 
 export default function AuthCallbackPage() {
@@ -44,10 +53,10 @@ export default function AuthCallbackPage() {
         <div style={{ width: 32, height: 32, border: "3px solid #c9a84c", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <p style={{ color: "#666", fontSize: 14 }}>Signing you in...</p>
+        <Suspense>
+          <CallbackHandler />
+        </Suspense>
       </div>
-      <Suspense>
-        <CallbackHandler />
-      </Suspense>
     </div>
   );
 }

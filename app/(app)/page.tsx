@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import Link from "next/link";
-import { Plus, ArrowRight, Trash2, Pencil } from "lucide-react";
+import { Plus, ArrowRight, Trash2 } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -61,25 +61,21 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       borderTop: `3px solid ${account.color}`,
       borderRadius: 12,
     }}>
-      {/* Edit + Delete icons — top right */}
-      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10, display: "flex", gap: 2 }}>
+      {/* Edit + Delete — top right */}
+      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10, display: "flex", alignItems: "center", gap: 6 }}>
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(account); }}
-          title="Edit account"
-          style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+          style={{ background: "none", border: "1px solid #c9a84c", color: "#c9a84c", cursor: "pointer", padding: "2px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}
         >
-          <Pencil size={14} />
+          Edit
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
-          title="Delete account"
-          style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center" }}
+          style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: "2px 4px", borderRadius: 5, display: "flex", alignItems: "center" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
         >
-          <Trash2 size={14} />
+          <Trash2 size={13} />
         </button>
       </div>
 

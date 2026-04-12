@@ -17,8 +17,7 @@ function CallbackHandler() {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-          router.push("/home");
-          router.refresh();
+          window.location.href = "/home";
           return;
         }
       }
@@ -26,10 +25,9 @@ function CallbackHandler() {
       // Fallback: check for existing session (implicit/hash flow)
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/home");
-        router.refresh();
+        window.location.href = "/home";
       } else {
-        router.push("/login");
+        window.location.href = "/login";
       }
     }
 

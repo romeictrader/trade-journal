@@ -96,31 +96,6 @@ export default function LoginPage() {
           {googleLoading ? "Redirecting..." : "Continue with Google"}
         </button>
 
-        {/* Apple Button */}
-        <button
-          type="button"
-          disabled
-          style={{
-            width: "100%",
-            background: "#111",
-            color: "#888",
-            fontWeight: 600,
-            fontSize: 15,
-            border: "1px solid #2a2a2a",
-            borderRadius: 10,
-            padding: "14px",
-            cursor: "not-allowed",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            marginBottom: 24,
-            opacity: 0.4,
-          }}
-        >
-          <AppleIcon />
-          Continue with Apple
-        </button>
 
         {/* Divider */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
@@ -168,7 +143,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{ width: "100%", background: loading ? "#555" : "#1a6fff", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", transition: "background 0.2s" }}
+            style={{ width: "100%", background: loading ? "#555" : "#c9a84c", color: "#000", fontWeight: 700, fontSize: 15, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", transition: "background 0.2s" }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

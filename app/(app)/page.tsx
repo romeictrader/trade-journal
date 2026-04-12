@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import Link from "next/link";
-import { Plus, ArrowRight, Trash2 } from "lucide-react";
+import { Plus, ArrowRight, Trash2, Edit2 } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -112,6 +112,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editAccount, setEditAccount] = useState<Account | null>(null);
+  const [showEditMenu, setShowEditMenu] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -185,25 +186,48 @@ export default function DashboardPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Accounts Overview</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All prop firm accounts in one place</p>
         </div>
-        <button
-          onClick={() => setShowAddAccount(true)}
-          style={{
-            background: "#c9a84c",
-            border: "none",
-            borderRadius: 8,
-            color: "#000",
-            fontWeight: 700,
-            fontSize: 13,
-            padding: "10px 18px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <Plus size={15} />
-          Add Account
-        </button>
+        <div style={{ display: "flex", gap: 8, position: "relative" }}>
+          {/* Edit Account button — same style as Trade Log */}
+          <button
+            onClick={() => setShowEditMenu((v) => !v)}
+            style={{ background: "#c9a84c", border: "none", borderRadius: 8, color: "#000", fontWeight: 700, fontSize: 13, padding: "10px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Edit2 size={14} /> Edit Account
+          </button>
+          {showEditMenu && (
+            <>
+              <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setShowEditMenu(false)} />
+              <div style={{ position: "absolute", top: "110%", right: 0, background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, minWidth: 200, zIndex: 50, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+                <div style={{ padding: "10px 14px 6px", fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Select Account</div>
+                {accountStats.length === 0 && (
+                  <div style={{ padding: "10px 14px", fontSize: 13, color: "#555" }}>No accounts yet</div>
+                )}
+                {accountStats.map(({ account }) => (
+                  <button
+                    key={account.id}
+                    onClick={() => { setShowEditMenu(false); setEditAccount(account); }}
+                    style={{ width: "100%", background: "none", border: "none", color: "#ccc", cursor: "pointer", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, fontSize: 13, textAlign: "left" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#222"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: account.color, flexShrink: 0, display: "inline-block" }} />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{account.prop_firm}</div>
+                      <div style={{ fontSize: 11, color: "#666" }}>{account.account_name}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <button
+            onClick={() => setShowAddAccount(true)}
+            style={{ background: "#222", border: "1px solid #333", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Plus size={15} />
+            Add Account
+          </button>
+        </div>
       </div>
 
 

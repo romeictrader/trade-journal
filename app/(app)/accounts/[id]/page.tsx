@@ -132,14 +132,14 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
         </div>
 
         {/* Weeks */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, height: isMobile ? 360 : undefined }}>
           {weeks.map((week, wi) => {
             const visibleCells = hideWeekends
               ? week.map((day, di) => ({ day, di })).filter(({ di }) => di >= 1 && di <= 5)
               : week.map((day, di) => ({ day, di }));
 
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, height: isMobile ? (hideWeekends ? 72 : 56) : undefined }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, flex: 1, minHeight: isMobile ? undefined : 80 }}>
                 {visibleCells.map(({ day, di }) => {
                   if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: isMobile ? undefined : 80 }} />;
                   const iso = ds(day);

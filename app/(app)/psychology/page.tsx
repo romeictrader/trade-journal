@@ -16,9 +16,9 @@ export default function PsychologyPage() {
   const [checkins, setCheckins] = useState<PsychologyCheckin[]>([]);
   const [userId, setUserId] = useState("");
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const [date] = useState(today);
-  const [followedRules, setFollowedRules] = useState(true);
+  const [followedRules, setFollowedRules] = useState<boolean | null>(null);
   const [rulesBroken, setRulesBroken] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -38,7 +38,7 @@ export default function PsychologyPage() {
         if (data) setCheckins(data);
         const todayCheckin = data?.find((c) => c.date === today);
         if (todayCheckin) {
-          setFollowedRules(todayCheckin.followed_rules ?? true);
+          setFollowedRules(todayCheckin.followed_rules ?? null);
           setNotes(todayCheckin.notes ?? "");
           const rb = (todayCheckin as unknown as Record<string, unknown>).rules_broken as string | null;
           setRulesBroken(rb ?? "");
@@ -56,7 +56,7 @@ export default function PsychologyPage() {
     const payload = {
       user_id: user.id, date,
       confidence: 5, focus: 5, stress: 3,
-      followed_rules: fields.followedRules ?? followedRules,
+      followed_rules: (fields.followedRules !== undefined ? fields.followedRules : followedRules) ?? null,
       notes: (fields.notes ?? notes) || null,
       rules_broken: (fields.rulesBroken ?? rulesBroken) || null,
     };
@@ -89,12 +89,14 @@ export default function PsychologyPage() {
   // Stats
   let streak = 0;
   for (const c of [...checkins].sort((a, b) => b.date.localeCompare(a.date))) {
-    if (c.followed_rules) streak++; else break;
+    if (c.followed_rules === true) streak++;
+    else if (c.followed_rules === false) break;
+    // null (nil) doesn't break streak but doesn't add to it
   }
   const monthPfx = today.slice(0, 7);
   const monthCheckins = checkins.filter((c) => c.date.startsWith(monthPfx));
-  const rulesFollowedDays = monthCheckins.filter((c) => c.followed_rules).length;
-  const rulesBrokenDays = monthCheckins.filter((c) => !c.followed_rules).length;
+  const rulesFollowedDays = monthCheckins.filter((c) => c.followed_rules === true).length;
+  const rulesBrokenDays = monthCheckins.filter((c) => c.followed_rules === false).length;
 
   // Calendar
   const year = new Date().getFullYear();
@@ -125,14 +127,20 @@ export default function PsychologyPage() {
             <div style={{ fontSize: 13, color: "#ccc", fontWeight: 600, marginBottom: 10 }}>Did you follow your trading rules today?</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={() => { setFollowedRules(true); setRulesBroken(""); scheduleAutoSave({ followedRules: true, rulesBroken: "" }); }}
-                style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid", borderColor: followedRules ? "#22c55e" : "#333", background: followedRules ? "#22c55e22" : "transparent", color: followedRules ? "#22c55e" : "#888", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                onClick={() => { setFollowedRules(true); setRulesBroken(""); }}
+                style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid", borderColor: followedRules === true ? "#22c55e" : "#333", background: followedRules === true ? "#22c55e22" : "transparent", color: followedRules === true ? "#22c55e" : "#888", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
                 <CheckCircle size={14} /> Yes
               </button>
               <button
-                onClick={() => { setFollowedRules(false); scheduleAutoSave({ followedRules: false }); }}
-                style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid", borderColor: !followedRules ? "#ef4444" : "#333", background: !followedRules ? "#ef444422" : "transparent", color: !followedRules ? "#ef4444" : "#888", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                onClick={() => { setFollowedRules(null); setRulesBroken(""); }}
+                style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid", borderColor: followedRules === null ? "#555" : "#333", background: followedRules === null ? "#55555522" : "transparent", color: followedRules === null ? "#aaa" : "#888", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              >
+                — Nil
+              </button>
+              <button
+                onClick={() => { setFollowedRules(false); }}
+                style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid", borderColor: followedRules === false ? "#ef4444" : "#333", background: followedRules === false ? "#ef444422" : "transparent", color: followedRules === false ? "#ef4444" : "#888", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
                 <XCircle size={14} /> No
               </button>
@@ -140,7 +148,7 @@ export default function PsychologyPage() {
           </div>
 
           {/* Rules broken multi-tag */}
-          {!followedRules && (
+          {followedRules === false && (
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 13, color: "#888", marginBottom: 8, fontWeight: 600 }}>Which rules did you break?</div>
               <MultiTagInput
@@ -221,9 +229,9 @@ export default function PsychologyPage() {
               {cells.map((day, i) => {
                 if (!day) return <div key={`e-${i}`} />;
                 const c = dayCheckin(day);
-                const bg = c ? (c.followed_rules ? "#22c55e33" : "#ef444433") : "#1a1a1a";
-                const border = c ? (c.followed_rules ? "#22c55e66" : "#ef444466") : "#222";
-                const col = c ? (c.followed_rules ? "#22c55e" : "#ef4444") : "#444";
+                const bg = !c ? "#1a1a1a" : c.followed_rules === true ? "#22c55e33" : c.followed_rules === false ? "#ef444433" : "#111";
+                const border = !c ? "#222" : c.followed_rules === true ? "#22c55e66" : c.followed_rules === false ? "#ef444466" : "#333";
+                const col = !c ? "#444" : c.followed_rules === true ? "#22c55e" : c.followed_rules === false ? "#ef4444" : "#555";
                 return (
                   <div
                     key={day}
@@ -267,12 +275,14 @@ export default function PsychologyPage() {
             {selectedCheckin ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {/* Rules followed */}
-                <div style={{ background: selectedCheckin.followed_rules ? "#22c55e0d" : "#ef44440d", border: `1px solid ${selectedCheckin.followed_rules ? "#22c55e33" : "#ef444433"}`, borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-                  {selectedCheckin.followed_rules
+                <div style={{ background: selectedCheckin.followed_rules === true ? "#22c55e0d" : selectedCheckin.followed_rules === false ? "#ef44440d" : "#1a1a1a", border: `1px solid ${selectedCheckin.followed_rules === true ? "#22c55e33" : selectedCheckin.followed_rules === false ? "#ef444433" : "#333"}`, borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+                  {selectedCheckin.followed_rules === true
                     ? <CheckCircle size={18} color="#22c55e" />
-                    : <XCircle size={18} color="#ef4444" />}
-                  <span style={{ fontSize: 14, fontWeight: 600, color: selectedCheckin.followed_rules ? "#22c55e" : "#ef4444" }}>
-                    {selectedCheckin.followed_rules ? "Followed trading rules" : "Did not follow rules"}
+                    : selectedCheckin.followed_rules === false
+                    ? <XCircle size={18} color="#ef4444" />
+                    : <span style={{ fontSize: 18 }}>—</span>}
+                  <span style={{ fontSize: 14, fontWeight: 600, color: selectedCheckin.followed_rules === true ? "#22c55e" : selectedCheckin.followed_rules === false ? "#ef4444" : "#888" }}>
+                    {selectedCheckin.followed_rules === true ? "Followed trading rules" : selectedCheckin.followed_rules === false ? "Did not follow rules" : "Did not trade (Nil)"}
                   </span>
                 </div>
 

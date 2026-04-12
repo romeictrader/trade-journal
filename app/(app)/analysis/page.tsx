@@ -249,9 +249,9 @@ export default function AnalysisPage() {
               <tbody>
                 {contractData.map((r) => (
                   <tr key={r.contract} style={{ borderBottom: "1px solid #1a1a1a" }}>
-                    <td style={{ padding: "10px 20px", fontWeight: 600 }}>{r.contract}</td>
+                    <td style={{ padding: "10px 20px", fontWeight: 600, color: "#ccc" }}>{r.contract}</td>
                     <td style={{ padding: "10px 20px", color: "#888", fontSize: 13 }}>{r.count}</td>
-                    <td style={{ padding: "10px 20px", fontSize: 13 }}>{r.winPct.toFixed(1)}%</td>
+                    <td style={{ padding: "10px 20px", fontSize: 13, color: "#ccc" }}>{r.winPct.toFixed(1)}%</td>
                     <td style={{ padding: "10px 20px", fontSize: 13, color: r.avgPnl >= 0 ? "#22c55e" : "#ef4444" }}>${r.avgPnl.toFixed(2)}</td>
                     <td style={{ padding: "10px 20px", fontSize: 13, fontWeight: 700, color: r.totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>${r.totalPnl >= 0 ? "+" : ""}{r.totalPnl.toFixed(2)}</td>
                   </tr>

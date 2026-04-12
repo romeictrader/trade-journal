@@ -31,9 +31,18 @@ body {
   border-radius: 3px;
 }
 
-/* Recharts transparent background */
-.recharts-wrapper .recharts-surface {
-  background: transparent;
+/* Recharts */
+.recharts-wrapper,
+.recharts-wrapper svg,
+.recharts-surface {
+  background: transparent !important;
+}
+.recharts-wrapper > svg > rect:first-child,
+.recharts-cartesian-grid-bg {
+  fill: transparent !important;
+}
+.recharts-text, .recharts-label {
+  fill: #888 !important;
 }
 
 /* Tiptap editor styles */

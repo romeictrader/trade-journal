@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import Link from "next/link";
-import { Plus, ArrowRight, Trash2, Pencil, MoreVertical } from "lucide-react";
+import { Plus, ArrowRight, Trash2, Pencil } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -52,7 +52,6 @@ function calcStats(account: Account, trades: Trade[]): AccountStats {
 
 function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelete: (id: string) => void; onEdit: (account: Account) => void }) {
   const { account, totalPnl, winRate, balance } = stats;
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div style={{
@@ -62,39 +61,26 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       borderTop: `3px solid ${account.color}`,
       borderRadius: 12,
     }}>
-      {/* ⋮ menu button — top right */}
-      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
+      {/* Edit + Delete icons — top right */}
+      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10, display: "flex", gap: 2 }}>
         <button
-          onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
-          style={{ background: "none", border: "none", color: "#666", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center" }}
+          onClick={(e) => { e.stopPropagation(); onEdit(account); }}
+          title="Edit account"
+          style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
         >
-          <MoreVertical size={15} />
+          <Pencil size={14} />
         </button>
-        {menuOpen && (
-          <>
-            {/* backdrop to close menu */}
-            <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setMenuOpen(false)} />
-            <div style={{ position: "absolute", top: 28, right: 0, background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, overflow: "hidden", minWidth: 120, zIndex: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.4)" }}>
-              <button
-                onClick={(e) => { e.preventDefault(); setMenuOpen(false); onEdit(account); }}
-                style={{ width: "100%", background: "none", border: "none", color: "#ccc", cursor: "pointer", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, fontSize: 13, textAlign: "left" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#222"; e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
-              >
-                <Pencil size={13} /> Edit
-              </button>
-              <div style={{ height: 1, background: "#2a2a2a" }} />
-              <button
-                onClick={(e) => { e.preventDefault(); setMenuOpen(false); if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
-                style={{ width: "100%", background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, fontSize: 13, textAlign: "left" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#1f1010"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
-              >
-                <Trash2 size={13} /> Delete
-              </button>
-            </div>
-          </>
-        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
+          title="Delete account"
+          style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
 
       {/* Card content — navigates to dashboard */}

@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_WEEKDAY = ["Mo", "Tu", "We", "Th", "Fr"];
 const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 export default function CalendarPage() {
@@ -19,6 +19,10 @@ export default function CalendarPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showWeekends, setShowWeekends] = useState(false);
+
+  // On mobile: hide weekends by default unless toggled
+  const hideWeekends = isMobile && !showWeekends;
 
   useEffect(() => {
     async function load() {
@@ -95,18 +99,25 @@ export default function CalendarPage() {
     return "#141414";
   }
 
-  function getCellBorder(pnl: number, isToday: boolean, isSelected: boolean) {
+  function getCellBorder(_pnl: number, isToday: boolean, isSelected: boolean) {
     if (isSelected) return "1px solid #4fc3f7";
     if (isToday) return "1px solid #4fc3f7";
     return "1px solid #1e1e1e";
   }
+
+  const visibleDayLabels = hideWeekends ? DAYS_WEEKDAY : DAYS;
+  const gridCols = hideWeekends
+    ? "repeat(5, 1fr)"
+    : isMobile
+    ? "repeat(7, 1fr)"
+    : "repeat(7, 1fr) 120px";
 
   return (
     <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", height: isMobile ? undefined : "calc(100vh - 52px)", background: "#0d0d0d", overflowY: isMobile ? "auto" : undefined }}>
       <div style={{ flex: 1, padding: isMobile ? "16px 12px" : "20px 16px", overflowY: isMobile ? undefined : "auto", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: isMobile ? 10 : 16, position: "relative" }}>
           <button onClick={prevMonth} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
             <ChevronLeft size={18} />
           </button>
@@ -116,10 +127,12 @@ export default function CalendarPage() {
           <button onClick={nextMonth} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
             <ChevronRight size={18} />
           </button>
-          <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
-            <span style={{ color: "#fff" }}>Monthly P&L: </span>
-            <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
-          </span>
+          {!isMobile && (
+            <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+              <span style={{ color: "#fff" }}>Monthly P&L: </span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+            </span>
+          )}
           <button
             onClick={() => { setYear(new Date().getFullYear()); setMonth(new Date().getMonth()); }}
             style={{ marginLeft: "auto", background: "none", border: "1px solid #333", borderRadius: 6, color: "#aaa", fontSize: 12, padding: "5px 12px", cursor: "pointer" }}
@@ -128,18 +141,40 @@ export default function CalendarPage() {
           </button>
         </div>
 
+        {/* Mobile: monthly P&L + Show Weekends toggle */}
+        {isMobile && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>
+              <span style={{ color: "#888" }}>Monthly P&L: </span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+            </span>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "#888", userSelect: "none" }}>
+              <div
+                onClick={() => setShowWeekends(v => !v)}
+                style={{
+                  width: 16, height: 16, border: `1px solid ${showWeekends ? "#c9a84c" : "#444"}`,
+                  borderRadius: 3, background: showWeekends ? "#c9a84c22" : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}
+              >
+                {showWeekends && <div style={{ width: 8, height: 8, background: "#c9a84c", borderRadius: 1 }} />}
+              </div>
+              <span onClick={() => setShowWeekends(v => !v)}>Show Weekends</span>
+            </label>
+          </div>
+        )}
+
         {/* Day headers */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", marginBottom: 2 }}>
-          {DAYS.map(d => (
+        <div style={{ display: "grid", gridTemplateColumns: gridCols, marginBottom: 2 }}>
+          {visibleDayLabels.map(d => (
             <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#555", fontWeight: 600, padding: "6px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>{d}</div>
           ))}
           {!isMobile && <div />}
         </div>
 
-        {/* Calendar grid with week summaries */}
+        {/* Calendar grid */}
         <div style={{ flex: isMobile ? undefined : 1, display: "flex", flexDirection: "column", gap: 2 }}>
           {weeks.map((week, wi) => {
-            // Week P&L
             const weekTrades: Trade[] = [];
             for (const day of week) {
               if (!day) continue;
@@ -149,9 +184,14 @@ export default function CalendarPage() {
             const weekPnl = weekTrades.reduce((s, t) => s + t.pnl, 0);
             const weekNum = wi + 1;
 
+            // On mobile with hideWeekends, filter to Mon(di=1)–Fri(di=5)
+            const visibleCells = hideWeekends
+              ? week.map((day, di) => ({ day, di })).filter(({ di }) => di >= 1 && di <= 5)
+              : week.map((day, di) => ({ day, di }));
+
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", gap: 2, flex: isMobile ? undefined : 1, height: isMobile ? 72 : undefined, minHeight: isMobile ? undefined : 80 }}>
-                {week.map((day, di) => {
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, flex: isMobile ? undefined : 1, height: isMobile ? 72 : undefined, minHeight: isMobile ? undefined : 80 }}>
+                {visibleCells.map(({ day, di }) => {
                   if (!day) {
                     return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;
                   }

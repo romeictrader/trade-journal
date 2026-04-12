@@ -4,15 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import Link from "next/link";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
 import { Plus, ArrowRight, Trash2, Pencil } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -142,21 +133,22 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
           title="Edit account"
           style={{
             background: "none",
-            border: "none",
-            color: "#888",
+            border: "1px solid #444",
+            color: "#aaa",
             cursor: "pointer",
-            padding: 4,
+            padding: "4px 10px",
             borderRadius: 6,
             display: "flex",
             alignItems: "center",
-            gap: 4,
-            fontSize: 11,
-            transition: "color 0.15s",
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 600,
+            transition: "border-color 0.15s, color 0.15s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#c9a84c"; e.currentTarget.style.borderColor = "#c9a84c"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.borderColor = "#444"; }}
         >
-          <Pencil size={11} /> Edit
+          <Pencil size={12} /> Edit
         </button>
         <Link
           href={`/accounts/${account.id}`}

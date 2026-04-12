@@ -35,11 +35,16 @@ export default function LoginPage() {
   async function handleGoogleLogin() {
     setGoogleLoading(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: "offline", prompt: "consent" },
+        skipBrowserRedirect: true,
+      },
     });
-    if (error) { setError(error.message); setGoogleLoading(false); }
+    if (error) { setError(error.message); setGoogleLoading(false); return; }
+    if (data.url) window.location.href = data.url;
   }
 
   async function handleSubmit(e: React.FormEvent) {

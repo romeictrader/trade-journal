@@ -183,7 +183,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Accounts Overview</h1>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Prop Firm Accounts</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All prop firm accounts in one place</p>
         </div>
         <div style={{ display: "flex", gap: 8, position: "relative" }}>

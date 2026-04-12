@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Account } from "@/lib/types";
 import AutocompleteInput from "./AutocompleteInput";
 
 interface AddAccountModalProps {
   onClose: () => void;
   onSaved: () => void;
+  account?: Account; // if provided, edit mode
 }
 
 const inputStyle: React.CSSProperties = {
@@ -76,17 +78,18 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-export default function AddAccountModal({ onClose, onSaved }: AddAccountModalProps) {
-  const [propFirm, setPropFirm] = useState("");
-  const [accountName, setAccountName] = useState("");
-  const [accountSize, setAccountSize] = useState(50000);
-  const [dailyLoss, setDailyLoss] = useState(1000);
-  const [maxDrawdown, setMaxDrawdown] = useState(2500);
-  const [profitTarget, setProfitTarget] = useState(3000);
-  const [dailyLossEnabled, setDailyLossEnabled] = useState(true);
-  const [maxDrawdownEnabled, setMaxDrawdownEnabled] = useState(true);
-  const [profitTargetEnabled, setProfitTargetEnabled] = useState(true);
-  const [color, setColor] = useState("#c9a84c");
+export default function AddAccountModal({ onClose, onSaved, account }: AddAccountModalProps) {
+  const isEdit = !!account;
+  const [propFirm, setPropFirm] = useState(account?.prop_firm ?? "");
+  const [accountName, setAccountName] = useState(account?.account_name ?? "");
+  const [accountSize, setAccountSize] = useState(account?.account_size ?? 50000);
+  const [dailyLoss, setDailyLoss] = useState(account?.daily_loss_limit ?? 1000);
+  const [maxDrawdown, setMaxDrawdown] = useState(account?.max_drawdown ?? 2500);
+  const [profitTarget, setProfitTarget] = useState(account?.profit_target ?? 3000);
+  const [dailyLossEnabled, setDailyLossEnabled] = useState(account?.daily_loss_enabled ?? true);
+  const [maxDrawdownEnabled, setMaxDrawdownEnabled] = useState(account?.max_drawdown_enabled ?? true);
+  const [profitTargetEnabled, setProfitTargetEnabled] = useState(account?.profit_target_enabled ?? true);
+  const [color, setColor] = useState(account?.color ?? "#c9a84c");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState("");
@@ -110,12 +113,10 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError("Not authenticated"); setSaving(false); return; }
 
-    const { error: err } = await supabase.from("accounts").insert({
-      user_id: user.id,
+    const payload = {
       prop_firm: propFirm,
       account_name: accountName,
       account_size: accountSize,
-      starting_balance: accountSize,
       daily_loss_limit: dailyLoss,
       max_drawdown: maxDrawdown,
       profit_target: profitTarget,
@@ -123,7 +124,11 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
       max_drawdown_enabled: maxDrawdownEnabled,
       profit_target_enabled: profitTargetEnabled,
       color,
-    });
+    };
+
+    const { error: err } = account
+      ? await supabase.from("accounts").update(payload).eq("id", account.id)
+      : await supabase.from("accounts").insert({ ...payload, user_id: user.id, starting_balance: accountSize });
 
     if (err) {
       setError(err.message);
@@ -149,7 +154,7 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Add Account</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{account ? "Edit Account" : "Add Account"}</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}>
             <X size={18} />
           </button>
@@ -286,7 +291,7 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
               cursor: saving ? "not-allowed" : "pointer",
             }}
           >
-            {saving ? "Saving..." : "Save Account"}
+            {saving ? "Saving..." : account ? "Save Changes" : "Save Account"}
           </button>
           <button
             type="button"

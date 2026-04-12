@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { Plus, ArrowRight, Trash2 } from "lucide-react";
+import { Plus, ArrowRight, Trash2, Pencil } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -59,7 +59,7 @@ function calcStats(account: Account, trades: Trade[]): AccountStats {
   return { account, trades, totalPnl, winRate, balance, todayPnl, maxDD };
 }
 
-function AccountCard({ stats, onDelete }: { stats: AccountStats; onDelete: (id: string) => void }) {
+function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelete: (id: string) => void; onEdit: (account: Account) => void }) {
   const { account, totalPnl, winRate, balance } = stats;
 
   return (
@@ -103,8 +103,19 @@ function AccountCard({ stats, onDelete }: { stats: AccountStats; onDelete: (id: 
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", fontSize: 12, color: "#c9a84c", gap: 4 }}>
-          View Dashboard <ArrowRight size={12} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button
+            onClick={(e) => { e.preventDefault(); onEdit(account); }}
+            title="Edit account"
+            style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", gap: 4, fontSize: 11, transition: "color 0.15s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+          >
+            <Pencil size={11} /> Edit
+          </button>
+          <div style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
+            View Dashboard <ArrowRight size={12} />
+          </div>
         </div>
       </Link>
       <button
@@ -145,6 +156,7 @@ export default function DashboardPage() {
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [editAccount, setEditAccount] = useState<Account | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -254,7 +266,7 @@ export default function DashboardPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16, marginBottom: 24 }}>
           {accountStats.map((stats) => (
-            <AccountCard key={stats.account.id} stats={stats} onDelete={deleteAccount} />
+            <AccountCard key={stats.account.id} stats={stats} onDelete={deleteAccount} onEdit={(acc) => setEditAccount(acc)} />
           ))}
 
           {/* Add account card */}
@@ -287,6 +299,13 @@ export default function DashboardPage() {
         <AddAccountModal
           onClose={() => setShowAddAccount(false)}
           onSaved={() => { setShowAddAccount(false); load(); }}
+        />
+      )}
+      {editAccount && (
+        <AddAccountModal
+          account={editAccount}
+          onClose={() => setEditAccount(null)}
+          onSaved={() => { setEditAccount(null); load(); }}
         />
       )}
     </div>

@@ -280,12 +280,7 @@ export default function AccountDashboard() {
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
   const balance = account.starting_balance + totalPnl;
 
-  let peak = 0, running = 0;
-  for (const t of trades) {
-    running += t.pnl;
-    if (running > peak) peak = running;
-  }
-  const maxDD = Math.max(0, peak - running); // current drawdown from peak (decreases when you profit)
+  const maxDD = Math.max(0, -totalPnl); // drawdown from starting balance (only when in net loss)
 
   const rrTrades = trades.filter((t) => t.rr != null);
   const avgRR = rrTrades.length > 0 ? rrTrades.reduce((s, t) => s + (t.rr ?? 0), 0) / rrTrades.length : 0;
@@ -473,7 +468,7 @@ export default function AccountDashboard() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ fontWeight: 700, color: t.pnl >= 0 ? "#22c55e" : "#ef4444" }}>${t.pnl >= 0 ? "+" : ""}{t.pnl.toFixed(2)}</span>
-                  <button onClick={(e) => { e.stopPropagation(); router.push(`/trades/${t.id}`); }} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, display: "flex" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")} onMouseLeave={(e) => (e.currentTarget.style.color = "#555")} title="View">
+                  <button onClick={(e) => { e.stopPropagation(); router.push(`/trades/${t.id}`); }} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")} onMouseLeave={(e) => (e.currentTarget.style.color = "#aaa")} title="View">
                     <Eye size={13} />
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); deleteTrade(t.id); }} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", padding: 4, display: "flex" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")} onMouseLeave={(e) => (e.currentTarget.style.color = "#444")} title="Delete">

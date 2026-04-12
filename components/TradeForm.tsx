@@ -153,7 +153,7 @@ export default function TradeForm({ accountId, onSave, onCancel, initialTrade }:
   const [userId, setUserId] = useState("");
 
   // Trade Details
-  const [contract, setContract] = useState(initialTrade?.contract ?? "ES");
+  const [contract, setContract] = useState(initialTrade?.contract ?? "");
   const [selectedAccount, setSelectedAccount] = useState(initialTrade?.account_id ?? accountId ?? "");
   const [date, setDate] = useState(initialTrade?.date ?? new Date().toISOString().split("T")[0]);
   const [executionTime, setExecutionTime] = useState(initialTrade?.execution_time ?? "");

@@ -103,21 +103,38 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button
-            onClick={(e) => { e.preventDefault(); onEdit(account); }}
-            title="Edit account"
-            style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", gap: 4, fontSize: 11, transition: "color 0.15s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
-          >
-            <Pencil size={11} /> Edit
-          </button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
           <div style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
             View Dashboard <ArrowRight size={12} />
           </div>
         </div>
       </Link>
+      {/* Edit button — bottom left, outside Link to avoid nested interactive element issues */}
+      <button
+        onClick={() => onEdit(account)}
+        title="Edit account"
+        style={{
+          position: "absolute",
+          bottom: 14,
+          left: 14,
+          background: "none",
+          border: "none",
+          color: "#555",
+          cursor: "pointer",
+          padding: 4,
+          borderRadius: 6,
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          fontSize: 11,
+          zIndex: 1,
+          transition: "color 0.15s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+      >
+        <Pencil size={11} /> Edit
+      </button>
       <button
         onClick={(e) => {
           e.preventDefault();

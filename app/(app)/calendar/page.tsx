@@ -130,7 +130,7 @@ export default function CalendarPage() {
           {!isMobile && (
             <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
               <span style={{ color: "#fff" }}>Monthly P&L: </span>
-              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(0)}` : `-$${Math.abs(monthPnl).toFixed(0)}`}</span>
             </span>
           )}
           <button
@@ -146,7 +146,7 @@ export default function CalendarPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>
               <span style={{ color: "#888" }}>Monthly P&L: </span>
-              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(0)}` : `-$${Math.abs(monthPnl).toFixed(0)}`}</span>
             </span>
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "#888", userSelect: "none" }}>
               <div
@@ -225,7 +225,7 @@ export default function CalendarPage() {
                       {hasTrades && (
                         <>
                           <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: isMobile ? 2 : "auto" }}>
-                            {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
+                            {dayPnl! >= 0 ? `$${dayPnl!.toFixed(0)}` : `-$${Math.abs(dayPnl!).toFixed(0)}`}
                           </div>
                           <div style={{ fontSize: isMobile ? 10 : 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>
                         </>
@@ -239,7 +239,7 @@ export default function CalendarPage() {
                   <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
                     <div style={{ fontSize: 10, color: "#555", fontWeight: 600, marginBottom: 4 }}>Week {weekNum}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-                      {weekTrades.length === 0 ? "$0.00" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+                      {weekTrades.length === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
                     </div>
                     <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
                   </div>

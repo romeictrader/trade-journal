@@ -96,7 +96,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
           {!isMobile && (
             <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
               <span style={{ color: "#fff" }}>Monthly P&L: </span>
-              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(0)}` : `-$${Math.abs(monthPnl).toFixed(0)}`}</span>
             </span>
           )}
         </div>
@@ -106,7 +106,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <span style={{ fontSize: 12, fontWeight: 600 }}>
               <span style={{ color: "#888" }}>Monthly P&L: </span>
-              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(2)}` : `-$${Math.abs(monthPnl).toFixed(2)}`}</span>
+              <span style={{ color: monthPnl >= 0 ? "#4caf50" : "#ef5350", fontWeight: 700 }}>{monthPnl >= 0 ? `+$${monthPnl.toFixed(0)}` : `-$${Math.abs(monthPnl).toFixed(0)}`}</span>
             </span>
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 11, color: "#888", userSelect: "none" }}>
               <div
@@ -170,7 +170,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
                       {hasTrades && (
                         <>
                           <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: stat.pnl > 0 ? "#4caf50" : stat.pnl < 0 ? "#ef5350" : "#666", marginTop: isMobile ? 2 : "auto" }}>
-                            {stat.pnl >= 0 ? `$${stat.pnl.toFixed(2)}` : `-$${Math.abs(stat.pnl).toFixed(2)}`}
+                            {stat.pnl >= 0 ? `$${stat.pnl.toFixed(0)}` : `-$${Math.abs(stat.pnl).toFixed(0)}`}
                           </div>
                           <div style={{ fontSize: 10, color: "#666" }}>{stat.count} trade{stat.count !== 1 ? "s" : ""}</div>
                         </>
@@ -203,7 +203,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
           >
             <div style={{ fontSize: 10, color: "#444", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Week {wi + 1}</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: weekCount === 0 ? "#333" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-              {weekCount === 0 ? "$0.00" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+              {weekCount === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
             </div>
             <div style={{ fontSize: 11, color: "#444", marginTop: 4 }}>{weekCount} trade{weekCount !== 1 ? "s" : ""}</div>
           </div>

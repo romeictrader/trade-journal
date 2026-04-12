@@ -10,11 +10,9 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (event === "SIGNED_IN" && session) {
         router.push("/home");
         router.refresh();
-      } else {
-        router.push("/login");
       }
     });
   }, [router]);

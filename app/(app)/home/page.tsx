@@ -4,17 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import Link from "next/link";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
-import { Plus, ArrowRight, Trash2 } from "lucide-react";
+import { Plus, ArrowRight, Trash2, Edit2 } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 function Skeleton({ width, height }: { width?: string | number; height?: string | number }) {
   return (
@@ -58,38 +50,32 @@ function calcStats(account: Account, trades: Trade[]): AccountStats {
   return { account, trades, totalPnl, winRate, balance, todayPnl, maxDD };
 }
 
-function AccountCard({ stats, onDelete }: { stats: AccountStats; onDelete: (id: string) => void }) {
+function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelete: (id: string) => void; onEdit: (account: Account) => void }) {
   const { account, totalPnl, winRate, balance } = stats;
 
   return (
-    <div style={{ position: "relative" }}>
-      <Link
-        href={`/accounts/${account.id}`}
-        style={{
-          display: "block",
-          background: "#111",
-          border: `1px solid #222`,
-          borderTop: `3px solid ${account.color}`,
-          borderRadius: 12,
-          padding: "18px",
-          textDecoration: "none",
-          color: "inherit",
-          transition: "border-color 0.15s, background 0.15s",
-        }}
+    <div style={{ position: "relative", background: "#111", border: `1px solid #222`, borderTop: `3px solid ${account.color}`, borderRadius: 12 }}>
+      {/* Delete — top right */}
+      <button
+        onClick={() => { if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
+        style={{ position: "absolute", top: 10, right: 10, zIndex: 10, background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 5, display: "flex", alignItems: "center" }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
-            <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
-          </div>
-        </div>
+        <Trash2 size={13} />
+      </button>
 
+      {/* Card content */}
+      <div style={{ padding: "18px 18px 12px" }}>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
+        </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, color: "#555", marginBottom: 2 }}>Balance</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
         </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div>
             <div style={{ fontSize: 10, color: "#555" }}>Total P&L</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>
@@ -101,48 +87,32 @@ function AccountCard({ stats, onDelete }: { stats: AccountStats; onDelete: (id: 
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{winRate.toFixed(1)}%</div>
           </div>
         </div>
+      </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", fontSize: 12, color: "#c9a84c", gap: 4 }}>
+      {/* Bottom row — Edit left, View Dashboard right */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 14px" }}>
+        <button
+          onClick={() => onEdit(account)}
+          style={{ background: "#c9a84c", border: "none", color: "#000", cursor: "pointer", padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}
+        >
+          Edit
+        </button>
+        <Link href={`/accounts/${account.id}`} style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}>
           View Dashboard <ArrowRight size={12} />
-        </div>
-      </Link>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          if (confirm(`Delete account "${account.account_name}"? This cannot be undone.`)) {
-            onDelete(account.id);
-          }
-        }}
-        title="Delete account"
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          background: "none",
-          border: "none",
-          color: "#444",
-          cursor: "pointer",
-          padding: 4,
-          borderRadius: 6,
-          display: "flex",
-          alignItems: "center",
-          zIndex: 1,
-          transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
-      >
-        <Trash2 size={13} />
-      </button>
+        </Link>
+      </div>
     </div>
   );
 }
 
 export default function DashboardPage() {
+  const isMobile = useIsMobile();
   const [accountStats, setAccountStats] = useState<AccountStats[]>([]);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [editAccount, setEditAccount] = useState<Account | null>(null);
+  const [showEditMenu, setShowEditMenu] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -183,7 +153,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     load();
-    // Real-time subscription — refresh whenever trades change
     const supabase = createClient();
     const channel = supabase
       .channel("trades-changes")
@@ -192,32 +161,62 @@ export default function DashboardPage() {
     return () => { supabase.removeChannel(channel); };
   }, [load]);
 
-  // Only count trades belonging to existing accounts
   const activeAccountIds = new Set(accountStats.map((s) => s.account.id));
   const activeTrades = allTrades.filter((t) => t.account_id && activeAccountIds.has(t.account_id));
 
-
-  // Combined equity curve
-  const equityData: { date: string; equity: number }[] = [];
-  let cumPnl = 0;
-  const sorted = [...activeTrades].sort((a, b) => a.date.localeCompare(b.date));
-  for (const t of sorted) {
-    cumPnl += t.pnl;
-    equityData.push({ date: t.date, equity: cumPnl });
-  }
-
   return (
-    <div style={{ padding: 24, maxWidth: 1400 }}>
+    <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1400 }}>
       <style>{`@keyframes pulse { 0%,100%{background-position:200% 0} 50%{background-position:-200% 0} }`}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Accounts Overview</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All prop firm accounts in one place</p>
         </div>
+        <div style={{ display: "flex", gap: 8, position: "relative" }}>
+          {/* Edit Account button */}
+          <button
+            onClick={() => setShowEditMenu((v) => !v)}
+            style={{ background: "#c9a84c", border: "none", borderRadius: 8, color: "#000", fontWeight: 700, fontSize: 13, padding: "10px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Edit2 size={14} /> Edit Account
+          </button>
+          {showEditMenu && (
+            <>
+              <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setShowEditMenu(false)} />
+              <div style={{ position: "absolute", top: "110%", right: 0, background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, minWidth: 200, zIndex: 50, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+                <div style={{ padding: "10px 14px 6px", fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Select Account</div>
+                {accountStats.length === 0 && (
+                  <div style={{ padding: "10px 14px", fontSize: 13, color: "#555" }}>No accounts yet</div>
+                )}
+                {accountStats.map(({ account }) => (
+                  <button
+                    key={account.id}
+                    onClick={() => { setShowEditMenu(false); setEditAccount(account); }}
+                    style={{ width: "100%", background: "none", border: "none", color: "#ccc", cursor: "pointer", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, fontSize: 13, textAlign: "left" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#222"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: account.color, flexShrink: 0, display: "inline-block" }} />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{account.prop_firm}</div>
+                      <div style={{ fontSize: 11, color: "#666" }}>{account.account_name}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <button
+            onClick={() => setShowAddAccount(true)}
+            style={{ background: "#222", border: "1px solid #333", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Plus size={15} />
+            Add Account
+          </button>
+        </div>
       </div>
-
 
       {/* Account cards grid */}
       {loading ? (
@@ -233,7 +232,7 @@ export default function DashboardPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16, marginBottom: 24 }}>
           {accountStats.map((stats) => (
-            <AccountCard key={stats.account.id} stats={stats} onDelete={deleteAccount} />
+            <AccountCard key={stats.account.id} stats={stats} onDelete={deleteAccount} onEdit={(acc) => setEditAccount(acc)} />
           ))}
 
           {/* Add account card */}
@@ -261,11 +260,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-
       {showAddAccount && (
         <AddAccountModal
           onClose={() => setShowAddAccount(false)}
           onSaved={() => { setShowAddAccount(false); load(); }}
+        />
+      )}
+      {editAccount && (
+        <AddAccountModal
+          account={editAccount}
+          onClose={() => setEditAccount(null)}
+          onSaved={() => { setEditAccount(null); load(); }}
         />
       )}
     </div>

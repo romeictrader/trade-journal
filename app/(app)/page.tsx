@@ -63,81 +63,16 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
   const { account, totalPnl, winRate, balance } = stats;
 
   return (
-    <div style={{ position: "relative" }}>
-      <Link
-        href={`/accounts/${account.id}`}
-        style={{
-          display: "block",
-          background: "#111",
-          border: `1px solid #222`,
-          borderTop: `3px solid ${account.color}`,
-          borderRadius: 12,
-          padding: "18px",
-          textDecoration: "none",
-          color: "inherit",
-          transition: "border-color 0.15s, background 0.15s",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
-            <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: "#555", marginBottom: 2 }}>Balance</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 10, color: "#555" }}>Total P&L</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>
-              ${totalPnl >= 0 ? "+" : ""}{totalPnl.toFixed(2)}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, color: "#555" }}>Win Rate</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{winRate.toFixed(1)}%</div>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-          <div style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
-            View Dashboard <ArrowRight size={12} />
-          </div>
-        </div>
-      </Link>
-      {/* Edit button — bottom left, outside Link to avoid nested interactive element issues */}
+    <div style={{
+      position: "relative",
+      background: "#111",
+      border: `1px solid #222`,
+      borderTop: `3px solid ${account.color}`,
+      borderRadius: 12,
+    }}>
+      {/* Delete icon — top right */}
       <button
-        onClick={() => onEdit(account)}
-        title="Edit account"
-        style={{
-          position: "absolute",
-          bottom: 14,
-          left: 14,
-          background: "none",
-          border: "none",
-          color: "#555",
-          cursor: "pointer",
-          padding: 4,
-          borderRadius: 6,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          fontSize: 11,
-          zIndex: 1,
-          transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
-      >
-        <Pencil size={11} /> Edit
-      </button>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
+        onClick={() => {
           if (confirm(`Delete account "${account.account_name}"? This cannot be undone.`)) {
             onDelete(account.id);
           }
@@ -163,6 +98,73 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       >
         <Trash2 size={13} />
       </button>
+
+      {/* Card content — navigates to dashboard */}
+      <Link
+        href={`/accounts/${account.id}`}
+        style={{
+          display: "block",
+          padding: "18px 18px 10px",
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
+            <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: "#555", marginBottom: 2 }}>Balance</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: 10, color: "#555" }}>Total P&L</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>
+              ${totalPnl >= 0 ? "+" : ""}{totalPnl.toFixed(2)}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: "#555" }}>Win Rate</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{winRate.toFixed(1)}%</div>
+          </div>
+        </div>
+      </Link>
+
+      {/* Action row — sibling of Link so both buttons are independently clickable */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 14px" }}>
+        <button
+          onClick={() => onEdit(account)}
+          title="Edit account"
+          style={{
+            background: "none",
+            border: "none",
+            color: "#555",
+            cursor: "pointer",
+            padding: 4,
+            borderRadius: 6,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            fontSize: 11,
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+        >
+          <Pencil size={11} /> Edit
+        </button>
+        <Link
+          href={`/accounts/${account.id}`}
+          style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}
+        >
+          View Dashboard <ArrowRight size={12} />
+        </Link>
+      </div>
     </div>
   );
 }

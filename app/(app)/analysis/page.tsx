@@ -158,7 +158,7 @@ export default function AnalysisPage() {
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
               <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "#888" }}>Equity Curve</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={equityData} background={{ fill: "transparent" }}>
+                <AreaChart data={equityData}>
                   <defs>
                     <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#c9a84c" stopOpacity={0.3} />
@@ -176,7 +176,7 @@ export default function AnalysisPage() {
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
               <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "#888" }}>P&L by Day of Week</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={dowData} background={{ fill: "transparent" }}>
+                <BarChart data={dowData}>
                   <XAxis dataKey="day" tick={{ fill: "#aaa", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
                   <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
@@ -224,7 +224,7 @@ export default function AnalysisPage() {
           <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20, marginBottom: 16 }}>
             <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "#888" }}>P&L by Contract</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={contractData} background={{ fill: "transparent" }}>
+              <BarChart data={contractData}>
                 <XAxis dataKey="contract" tick={{ fill: "#aaa", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
                 <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
@@ -272,7 +272,7 @@ export default function AnalysisPage() {
           <div style={{ marginTop: 24 }}>
             <h4 style={{ color: "#888", marginBottom: 16, fontSize: 13 }}>P&L by Day of Week</h4>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={dowData} background={{ fill: "transparent" }}>
+              <BarChart data={dowData}>
                 <XAxis dataKey="day" tick={{ fill: "#aaa", fontSize: 12 }} />
                 <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
                 <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
@@ -293,7 +293,7 @@ export default function AnalysisPage() {
           <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20, marginBottom: 16 }}>
             <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "#888" }}>Win Rate by Setup</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={setupData} background={{ fill: "transparent" }}>
+              <BarChart data={setupData}>
                 <XAxis dataKey="setup" tick={{ fill: "#aaa", fontSize: 10 }} />
                 <YAxis domain={[0, 100]} tick={{ fill: "#888", fontSize: 10 }} width={40} unit="%" />
                 <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} formatter={(v) => [`${(v as number).toFixed(1)}%`, "Win Rate"]} />

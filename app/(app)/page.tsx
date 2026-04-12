@@ -99,7 +99,7 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px 14px" }}>
         <button
           onClick={() => onEdit(account)}
-          style={{ background: "none", border: "1px solid #c9a84c", color: "#c9a84c", cursor: "pointer", padding: "3px 10px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}
+          style={{ background: "#c9a84c", border: "none", color: "#000", cursor: "pointer", padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}
         >
           Edit
         </button>

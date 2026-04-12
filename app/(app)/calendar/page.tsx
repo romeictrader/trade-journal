@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -12,6 +13,7 @@ const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"
 
 export default function CalendarPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -100,7 +102,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 52px)", background: "#0d0d0d" }}>
+    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", height: "calc(100vh - 52px)", background: "#0d0d0d", overflowY: isMobile ? "auto" : undefined }}>
       <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
@@ -127,11 +129,11 @@ export default function CalendarPage() {
         </div>
 
         {/* Day headers */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 120px", marginBottom: 2 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", marginBottom: 2 }}>
           {DAYS.map(d => (
             <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#555", fontWeight: 600, padding: "6px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>{d}</div>
           ))}
-          <div />
+          {!isMobile && <div />}
         </div>
 
         {/* Calendar grid with week summaries */}
@@ -148,10 +150,10 @@ export default function CalendarPage() {
             const weekNum = wi + 1;
 
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 120px", gap: 2, flex: 1, minHeight: 80 }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", gap: 2, flex: 1, minHeight: isMobile ? 50 : 80 }}>
                 {week.map((day, di) => {
                   if (!day) {
-                    return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4, minHeight: 80 }} />;
+                    return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4, minHeight: isMobile ? 50 : 80 }} />;
                   }
                   const ds = dateStr(year, month, day);
                   const dayTrades = byDate[ds];
@@ -168,9 +170,9 @@ export default function CalendarPage() {
                         background: hasTrades ? getCellBg(dayPnl!) : "#111",
                         border: getCellBorder(dayPnl ?? 0, isToday, isSelected),
                         borderRadius: 4,
-                        padding: "8px 10px",
+                        padding: isMobile ? "4px 5px" : "8px 10px",
                         cursor: "pointer",
-                        minHeight: 80,
+                        minHeight: isMobile ? 50 : 80,
                         display: "flex",
                         flexDirection: "column",
                         transition: "filter 0.1s",
@@ -178,27 +180,29 @@ export default function CalendarPage() {
                       onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
                     >
-                      <div style={{ fontSize: 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: 6 }}>{day}</div>
+                      <div style={{ fontSize: isMobile ? 10 : 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: isMobile ? 2 : 6 }}>{day}</div>
                       {hasTrades && (
                         <>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
-                            {dayPnl! >= 0 ? "" : ""}{dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
+                          <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
+                            {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
                           </div>
-                          <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>
+                          {!isMobile && <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>}
                         </>
                       )}
                     </div>
                   );
                 })}
 
-                {/* Week summary column */}
-                <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
-                  <div style={{ fontSize: 10, color: "#555", fontWeight: 600, marginBottom: 4 }}>Week {weekNum}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-                    {weekTrades.length === 0 ? "$0.00" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+                {/* Week summary column — desktop only */}
+                {!isMobile && (
+                  <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 600, marginBottom: 4 }}>Week {weekNum}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+                      {weekTrades.length === 0 ? "$0.00" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
-                </div>
+                )}
               </div>
             );
           })}
@@ -207,7 +211,7 @@ export default function CalendarPage() {
 
       {/* Side panel */}
       {selectedDate && (
-        <div style={{ width: 280, background: "#111", borderLeft: "1px solid #1e1e1e", padding: 20, overflowY: "auto" }}>
+        <div style={isMobile ? { width: "100%", background: "#111", borderTop: "1px solid #1e1e1e", padding: 16, overflowY: "auto", maxHeight: "55vh" } : { width: 280, background: "#111", borderLeft: "1px solid #1e1e1e", padding: 20, overflowY: "auto" }}>
           <h4 style={{ margin: "0 0 12px", fontSize: 13, color: "#888" }}>{selectedDate}</h4>
           {selectedTrades.length === 0 ? (
             <p style={{ color: "#444", fontSize: 12 }}>No trades on this day.</p>

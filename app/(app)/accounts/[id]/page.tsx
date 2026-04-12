@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
@@ -21,7 +22,7 @@ function Skeleton({ width, height }: { width?: string | number; height?: string 
   );
 }
 
-function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: Trade[]; color: string; selectedDate: string | null; onSelectDate: (d: string | null) => void }) {
+function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: { trades: Trade[]; color: string; selectedDate: string | null; onSelectDate: (d: string | null) => void; isMobile?: boolean }) {
   const [viewMonth, setViewMonth] = useState(new Date());
 
   const year = viewMonth.getFullYear();
@@ -103,7 +104,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
           {weeks.map((week, wi) => (
             <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
               {week.map((day, di) => {
-                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: 80 }} />;
+                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: isMobile ? 50 : 80 }} />;
                 const iso = ds(day);
                 const stat = dailyMap[iso];
                 const hasTrades = !!stat;
@@ -118,8 +119,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
                       background: hasTrades ? getCellBg(stat.pnl) : "#0d0d0d",
                       border: isSelected || isToday2 ? `1px solid ${color}` : "1px solid #1e1e1e",
                       borderRadius: 3,
-                      padding: "6px 8px",
-                      minHeight: 80,
+                      padding: isMobile ? "4px 5px" : "6px 8px",
+                      minHeight: isMobile ? 50 : 80,
                       cursor: hasTrades ? "pointer" : "default",
                       display: "flex",
                       flexDirection: "column",
@@ -144,8 +145,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
         </div>
       </div>
 
-      {/* Week summaries panel */}
-      <div style={{ width: 140, display: "flex", flexDirection: "column", gap: 2, paddingTop: 36 }}>
+      {/* Week summaries panel — desktop only */}
+      <div style={{ width: 140, display: isMobile ? "none" : "flex", flexDirection: "column", gap: 2, paddingTop: 36 }}>
         {weekStats.map(({ wi, weekPnl, weekCount }) => (
           <div
             key={wi}
@@ -176,6 +177,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate }: { trades: T
 export default function AccountDashboard() {
   const params = useParams();
   const router = useRouter();
+  const isMobile = useIsMobile();
   const id = params.id as string;
 
   async function deleteTrade(tradeId: string) {
@@ -309,7 +311,7 @@ export default function AccountDashboard() {
   const recentTrades = [...trades].reverse().slice(0, 10);
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: isMobile ? 16 : 24 }}>
       <style>{`@keyframes pulse { 0%,100%{background-position:200% 0} 50%{background-position:-200% 0} }`}</style>
 
       {/* Header */}
@@ -330,7 +332,7 @@ export default function AccountDashboard() {
       </div>
 
       {/* Balance bar */}
-      <div style={{ background: "#111", border: `1px solid #222`, borderTop: `3px solid ${account.color}`, borderRadius: 12, padding: "20px", marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+      <div style={{ background: "#111", border: `1px solid #222`, borderTop: `3px solid ${account.color}`, borderRadius: 12, padding: "20px", marginBottom: 20, display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: 20 }}>
         {[
           { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff" },
           { label: "Total P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
@@ -349,7 +351,7 @@ export default function AccountDashboard() {
         {ruleItems.length === 0 ? (
           <div style={{ fontSize: 13, color: "#444" }}>No rules enabled.</div>
         ) : (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${ruleItems.length}, 1fr)`, gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : `repeat(${ruleItems.length}, 1fr)`, gap: 20 }}>
           {ruleItems.map((rule) => {
             const pct = Math.min(Math.max((rule.current / rule.limit) * 100, 0), 100);
             const passing = rule.inverted ? rule.current < rule.limit : rule.current >= rule.limit;
@@ -374,7 +376,7 @@ export default function AccountDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>Performance</div>
           {[
@@ -417,7 +419,7 @@ export default function AccountDashboard() {
       </div>
 
       {/* Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 20 }}>
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Equity Curve</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -452,7 +454,7 @@ export default function AccountDashboard() {
 
       {/* Calendar */}
       <div style={{ marginBottom: 20 }}>
-        <MiniCalendar trades={trades} color={account.color} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+        <MiniCalendar trades={trades} color={account.color} selectedDate={selectedDate} onSelectDate={setSelectedDate} isMobile={isMobile} />
       </div>
 
       {/* Recent trades */}
@@ -487,9 +489,9 @@ export default function AccountDashboard() {
 
       {/* Day peek side panel */}
       {selectedDate && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "flex-end" }}>
           <div style={{ flex: 1, background: "rgba(0,0,0,0.5)" }} onClick={() => setSelectedDate(null)} />
-          <div style={{ width: 400, height: "100vh", background: "#111", borderLeft: "1px solid #222", overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ width: isMobile ? "100%" : 400, height: isMobile ? "90vh" : "100vh", background: "#111", borderLeft: isMobile ? "none" : "1px solid #222", borderTop: isMobile ? "1px solid #222" : "none", overflowY: "auto", padding: isMobile ? 16 : 24, display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{selectedDate}</div>
@@ -538,9 +540,9 @@ export default function AccountDashboard() {
 
       {/* Add Trade */}
       {showAddTrade && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "flex-end" }}>
           <div style={{ flex: 1, background: "rgba(0,0,0,0.5)" }} onClick={() => setShowAddTrade(false)} />
-          <div style={{ width: 480, height: "100vh", background: "#111", borderLeft: "1px solid #222", overflowY: "auto", padding: 24 }}>
+          <div style={{ width: isMobile ? "100%" : 480, height: isMobile ? "90vh" : "100vh", background: "#111", borderLeft: isMobile ? "none" : "1px solid #222", borderTop: isMobile ? "1px solid #222" : "none", overflowY: "auto", padding: isMobile ? 16 : 24 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Add Trade</h2>
               <button onClick={() => setShowAddTrade(false)} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 20 }}>×</button>

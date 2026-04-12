@@ -89,14 +89,8 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
         </div>
       </div>
 
-      {/* Bottom row — Edit left, View Dashboard right */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 14px" }}>
-        <button
-          onClick={() => onEdit(account)}
-          style={{ background: "#c9a84c", border: "none", color: "#000", cursor: "pointer", padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}
-        >
-          Edit
-        </button>
+      {/* Bottom row — View Dashboard right */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 14px 14px" }}>
         <Link href={`/accounts/${account.id}`} style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}>
           View Dashboard <ArrowRight size={12} />
         </Link>

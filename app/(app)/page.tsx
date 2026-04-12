@@ -143,7 +143,7 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
           style={{
             background: "none",
             border: "none",
-            color: "#555",
+            color: "#888",
             cursor: "pointer",
             padding: 4,
             borderRadius: 6,
@@ -154,7 +154,7 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
         >
           <Pencil size={11} /> Edit
         </button>

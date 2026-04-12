@@ -53,7 +53,7 @@ function WinRateRing({ winRate, size = 60 }: { winRate: number; size?: number })
           transform={`rotate(-90 ${cx} ${cy})`}
         />
       )}
-      {lp > 0 && (
+      {lp > 0 && wp > 0 && (
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5}
           strokeDasharray={`${circ * lp} ${circ}`}
           strokeDashoffset={-(circ * wp)}
@@ -469,7 +469,7 @@ export default function AccountDashboard() {
         {/* Net P&L */}
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18 }}>
           <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Net P&L</div>
-          <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444", lineHeight: 1.1 }}>
+          <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff", lineHeight: 1.1 }}>
             ${totalPnl >= 0 ? "+" : ""}{totalPnl.toFixed(2)}
           </div>
           <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>
@@ -494,9 +494,8 @@ export default function AccountDashboard() {
             <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
               {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
-            <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Target: 2.0+</div>
           </div>
-          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
+          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor === 0 ? "#555" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
         </div>
 
         {/* Avg R:R */}
@@ -504,9 +503,8 @@ export default function AccountDashboard() {
           <div>
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Avg R:R</div>
             <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
-            <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Expectancy: ${expectancy.toFixed(0)}</div>
           </div>
-          <DonutRing pct={avgRR / 3} color={avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
+          <DonutRing pct={avgRR / 3} color={avgRR === 0 ? "#555" : avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
         </div>
 
       </div>

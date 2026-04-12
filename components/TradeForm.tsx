@@ -414,7 +414,7 @@ export default function TradeForm({ accountId, onSave, onCancel, initialTrade }:
           </FieldRow>
 
           <FieldRow label="Date">
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...inputStyle, colorScheme: "dark" }} />
           </FieldRow>
 
           <FieldRow label="Execution Time">

@@ -139,7 +139,7 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
               : week.map((day, di) => ({ day, di }));
 
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, height: isMobile ? 72 : undefined }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, height: isMobile ? (hideWeekends ? 72 : 56) : undefined }}>
                 {visibleCells.map(({ day, di }) => {
                   if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: isMobile ? undefined : 80 }} />;
                   const iso = ds(day);

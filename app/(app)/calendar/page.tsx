@@ -190,7 +190,7 @@ export default function CalendarPage() {
               : week.map((day, di) => ({ day, di }));
 
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, flex: isMobile ? undefined : 1, height: isMobile ? 72 : undefined, minHeight: isMobile ? undefined : 80 }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 2, flex: isMobile ? undefined : 1, height: isMobile ? (hideWeekends ? 72 : 56) : undefined, minHeight: isMobile ? undefined : 80 }}>
                 {visibleCells.map(({ day, di }) => {
                   if (!day) {
                     return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;

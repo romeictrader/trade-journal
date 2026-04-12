@@ -90,12 +90,37 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
         <Trash2 size={13} />
       </button>
 
+      {/* Edit icon — bottom left (mirrors delete icon at top right) */}
+      <button
+        onClick={() => onEdit(account)}
+        title="Edit account"
+        style={{
+          position: "absolute",
+          bottom: 10,
+          left: 10,
+          background: "none",
+          border: "none",
+          color: "#666",
+          cursor: "pointer",
+          padding: 4,
+          borderRadius: 6,
+          display: "flex",
+          alignItems: "center",
+          zIndex: 2,
+          transition: "color 0.15s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#c9a84c")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
+      >
+        <Pencil size={13} />
+      </button>
+
       {/* Card content — navigates to dashboard */}
       <Link
         href={`/accounts/${account.id}`}
         style={{
           display: "block",
-          padding: "18px 18px 10px",
+          padding: "18px 18px 18px",
           textDecoration: "none",
           color: "inherit",
         }}
@@ -112,7 +137,7 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
           <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: 10, color: "#555" }}>Total P&L</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>
@@ -124,39 +149,11 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{winRate.toFixed(1)}%</div>
           </div>
         </div>
-      </Link>
 
-      {/* Action row — sibling of Link so both buttons are independently clickable */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 14px" }}>
-        <button
-          onClick={() => onEdit(account)}
-          title="Edit account"
-          style={{
-            background: "none",
-            border: "1px solid #444",
-            color: "#aaa",
-            cursor: "pointer",
-            padding: "4px 10px",
-            borderRadius: 6,
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            fontSize: 12,
-            fontWeight: 600,
-            transition: "border-color 0.15s, color 0.15s",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#c9a84c"; e.currentTarget.style.borderColor = "#c9a84c"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.borderColor = "#444"; }}
-        >
-          <Pencil size={12} /> Edit
-        </button>
-        <Link
-          href={`/accounts/${account.id}`}
-          style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}
-        >
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
           View Dashboard <ArrowRight size={12} />
-        </Link>
-      </div>
+        </div>
+      </Link>
     </div>
   );
 }

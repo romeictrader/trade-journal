@@ -71,13 +71,13 @@ export default function AnalysisPage() {
   const equityData = trades.map((t) => { cum += t.pnl; return { date: t.date, equity: cum }; });
 
   // By day of week
-  const dowMap: Record<number, number[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  const dowMap: Record<number, number[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
   for (const t of trades) {
     const dow = new Date(t.date + "T12:00:00").getDay();
-    if (dowMap[dow]) dowMap[dow].push(t.pnl);
+    if (dowMap[dow] !== undefined) dowMap[dow].push(t.pnl);
   }
-  const DOW_LABELS: Record<number, string> = { 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri" };
-  const dowData = [1, 2, 3, 4, 5].map((d) => ({
+  const DOW_LABELS: Record<number, string> = { 0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat" };
+  const dowData = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
     day: DOW_LABELS[d],
     pnl: dowMap[d].reduce((s, v) => s + v, 0),
   }));

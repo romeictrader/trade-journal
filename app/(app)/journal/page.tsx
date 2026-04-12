@@ -40,6 +40,8 @@ export default function JournalPage() {
   const [images, setImages] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [pasteUrl, setPasteUrl] = useState("");
   const [showPhotoPanel, setShowPhotoPanel] = useState(false);
@@ -156,15 +158,23 @@ export default function JournalPage() {
 
   async function uploadImage(file: File) {
     if (!userId) return;
+    setUploading(true);
+    setUploadError("");
     const supabase = createClient();
     const ext = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "png";
     const path = `${userId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("journal-images").upload(path, file);
-    if (error) { console.error(error); return; }
+    if (error) {
+      setUploadError("Image upload failed. Make sure the journal-images storage bucket exists in Supabase.");
+      setUploading(false);
+      return;
+    }
     const nextPaths = [...images, path];
     const { data: signed } = await supabase.storage.from("journal-images").createSignedUrl(path, 3600);
     setImages(nextPaths);
     if (signed?.signedUrl) setImageUrls((prev) => [...prev, signed.signedUrl]);
+    setUploading(false);
+    await save({ images: nextPaths });
   }
 
   // Paste handler for photo panel (overrides mode restriction)
@@ -437,8 +447,11 @@ export default function JournalPage() {
                   style={{ background: "#111", border: "2px dashed #333", borderRadius: 10, padding: "18px 24px", color: "#555", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, fontSize: 13, width: "100%", justifyContent: "center", marginBottom: 8, boxSizing: "border-box" }}
                 >
                   <ImageIcon size={16} />
-                  Drop, paste or click to add screenshots
+                  {uploading ? "Uploading..." : "Drop, paste or click to add screenshots"}
                 </div>
+                {uploadError && (
+                  <div style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>{uploadError}</div>
+                )}
                 <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: "none" }}
                   onChange={async (e) => {
                     const files = Array.from(e.target.files ?? []);
@@ -511,7 +524,7 @@ export default function JournalPage() {
               <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid #1a1a1a", display: "flex", gap: 10 }}>
                 <button
                   onClick={() => save({ narrative, explanation, images, mood })}
-                  disabled={saveStatus === "saving"}
+                  disabled={saveStatus === "saving" || uploading}
                   style={{ background: "#c9a84c", border: "none", borderRadius: 8, color: "#000", fontWeight: 700, fontSize: 14, padding: "11px 32px", cursor: saveStatus === "saving" ? "not-allowed" : "pointer", opacity: saveStatus === "saving" ? 0.7 : 1 }}
                 >
                   {saveStatus === "saving" ? "Saving..." : "Save Entry"}

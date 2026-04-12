@@ -37,8 +37,10 @@ body {
 .recharts-surface {
   background: transparent !important;
 }
-.recharts-wrapper > svg > rect:first-child,
-.recharts-cartesian-grid-bg {
+.recharts-bar-background-rectangle,
+.recharts-rectangle.recharts-bar-background-rectangle,
+.recharts-cartesian-grid-bg,
+.recharts-cursor-background {
   fill: transparent !important;
 }
 .recharts-text, .recharts-label {

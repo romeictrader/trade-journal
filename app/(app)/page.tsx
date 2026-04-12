@@ -61,47 +61,27 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
       borderTop: `3px solid ${account.color}`,
       borderRadius: 12,
     }}>
-      {/* Edit + Delete — top right */}
-      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10, display: "flex", alignItems: "center", gap: 6 }}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onEdit(account); }}
-          style={{ background: "none", border: "1px solid #c9a84c", color: "#c9a84c", cursor: "pointer", padding: "2px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}
-        >
-          Edit
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
-          style={{ background: "none", border: "none", color: "#555", cursor: "pointer", padding: "2px 4px", borderRadius: 5, display: "flex", alignItems: "center" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
-
-      {/* Card content — navigates to dashboard */}
-      <Link
-        href={`/accounts/${account.id}`}
-        style={{
-          display: "block",
-          padding: "18px 18px 18px",
-          textDecoration: "none",
-          color: "inherit",
-        }}
+      {/* Delete — top right */}
+      <button
+        onClick={() => { if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
+        style={{ position: "absolute", top: 10, right: 10, zIndex: 10, background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 5, display: "flex", alignItems: "center" }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
-            <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
-          </div>
-        </div>
+        <Trash2 size={13} />
+      </button>
 
+      {/* Top content — navigates to dashboard on click */}
+      <Link href={`/accounts/${account.id}`} style={{ display: "block", padding: "18px 18px 12px", textDecoration: "none", color: "inherit" }}>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{account.account_name}</div>
+        </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, color: "#555", marginBottom: 2 }}>Balance</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
         </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div>
             <div style={{ fontSize: 10, color: "#555" }}>Total P&L</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" }}>
@@ -113,11 +93,20 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{winRate.toFixed(1)}%</div>
           </div>
         </div>
-
-        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
-          View Dashboard <ArrowRight size={12} />
-        </div>
       </Link>
+
+      {/* Bottom row — outside Link, both buttons independently clickable */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px 14px" }}>
+        <button
+          onClick={() => onEdit(account)}
+          style={{ background: "none", border: "1px solid #c9a84c", color: "#c9a84c", cursor: "pointer", padding: "3px 10px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}
+        >
+          Edit
+        </button>
+        <Link href={`/accounts/${account.id}`} style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}>
+          View Dashboard <ArrowRight size={12} />
+        </Link>
+      </div>
     </div>
   );
 }

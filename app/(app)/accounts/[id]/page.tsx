@@ -491,7 +491,7 @@ export default function AccountDashboard() {
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Profit Factor</div>
-            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: profitFactor >= 999 ? "#fff" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444", lineHeight: 1.1 }}>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
               {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
             <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Target: 2.0+</div>

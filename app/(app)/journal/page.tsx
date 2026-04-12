@@ -165,7 +165,6 @@ export default function JournalPage() {
     const { data: signed } = await supabase.storage.from("journal-images").createSignedUrl(path, 3600);
     setImages(nextPaths);
     if (signed?.signedUrl) setImageUrls((prev) => [...prev, signed.signedUrl]);
-    scheduleSave({ images: nextPaths });
   }
 
   // Paste handler for photo panel (overrides mode restriction)
@@ -381,7 +380,7 @@ export default function JournalPage() {
                   {MOODS.map((emoji, i) => (
                     <button
                       key={i}
-                      onClick={() => { setMood(i + 1); scheduleSave({ mood: i + 1 }); }}
+                      onClick={() => { setMood(i + 1); }}
                       style={{ fontSize: 24, background: mood === i + 1 ? "#c9a84c22" : "transparent", border: `1px solid ${mood === i + 1 ? "#c9a84c" : "#222"}`, borderRadius: 10, padding: "6px 10px", cursor: "pointer" }}
                     >
                       {emoji}
@@ -459,7 +458,6 @@ export default function JournalPage() {
                         setImages(nextPaths);
                         setImageUrls((prev) => [...prev, url]);
                         setPasteUrl("");
-                        scheduleSave({ images: nextPaths });
                       }
                     }}
                     placeholder="Or paste image URL..."
@@ -498,8 +496,7 @@ export default function JournalPage() {
                             const nextUrls = imageUrls.filter((_, idx) => idx !== i);
                             setImages(nextPaths);
                             setImageUrls(nextUrls);
-                            scheduleSave({ images: nextPaths });
-                          }}
+                              }}
                           style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", border: "none", borderRadius: 6, padding: "5px 7px", display: "flex", alignItems: "center", cursor: "pointer", color: "#ef4444" }}
                         >
                           <Trash2 size={13} />
@@ -589,7 +586,6 @@ export default function JournalPage() {
                         const nextUrls = imageUrls.filter((_, idx) => idx !== i);
                         setImages(nextPaths);
                         setImageUrls(nextUrls);
-                        scheduleSave({ images: nextPaths });
                       }}
                       style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", border: "none", borderRadius: 6, color: "#ef4444", cursor: "pointer", padding: "5px 7px", display: "flex", alignItems: "center" }}
                     >

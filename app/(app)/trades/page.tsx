@@ -16,7 +16,7 @@ export default function TradesPage() {
   async function loadTrades() {
     try {
       const supabase = createClient();
-      const { data } = await supabase.from("trades").select("*").order("date", { ascending: false });
+      const { data } = await supabase.from("trades").select("*").order("date", { ascending: false }).order("created_at", { ascending: false });
       if (data) setTrades(data);
     } catch (err) {
       console.error("Failed to load trades:", err);

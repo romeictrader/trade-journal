@@ -279,6 +279,7 @@ export default function AccountDashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddTrade, setShowAddTrade] = useState(false);
+  const [pnlMode, setPnlMode] = useState<"cumulative" | "daily">("cumulative");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [resetUtcHour, setResetUtcHour] = useState(22);
 
@@ -490,7 +491,7 @@ export default function AccountDashboard() {
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Profit Factor</div>
-            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444", lineHeight: 1.1 }}>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: profitFactor >= 999 ? "#fff" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444", lineHeight: 1.1 }}>
               {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
             <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Target: 2.0+</div>
@@ -502,7 +503,7 @@ export default function AccountDashboard() {
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Avg R:R</div>
-            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: avgRR >= 1 ? "#22c55e" : "#c9a84c", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
             <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Expectancy: ${expectancy.toFixed(0)}</div>
           </div>
           <DonutRing pct={avgRR / 3} color={avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
@@ -510,38 +511,43 @@ export default function AccountDashboard() {
 
       </div>
 
-      {/* Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 20 }}>
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Equity Curve</h3>
-          <ResponsiveContainer width="100%" height={200}>
+      {/* P&L Performance */}
+      <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 14, color: "#ccc", fontWeight: 600 }}>P&L Performance</h3>
+          <div style={{ display: "flex", background: "#1a1a1a", borderRadius: 8, padding: 3, gap: 2 }}>
+            {(["cumulative", "daily"] as const).map((mode) => (
+              <button key={mode} onClick={() => setPnlMode(mode)} style={{ background: pnlMode === mode ? "#2a2a2a" : "transparent", border: "none", borderRadius: 6, color: pnlMode === mode ? "#fff" : "#555", fontSize: 12, fontWeight: 600, padding: "5px 12px", cursor: "pointer", textTransform: "capitalize" }}>
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          {pnlMode === "cumulative" ? (
             <AreaChart data={equityData}>
               <defs>
-                <linearGradient id={`gold-${id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={account.color} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={account.color} stopOpacity={0} />
+                <linearGradient id={`perf-${id}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={account.color} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={account.color} stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="date" hide />
-              <YAxis domain={["auto", "auto"]} tick={{ fill: "#555", fontSize: 11 }} width={60} />
-              <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+              <XAxis dataKey="date" tick={{ fill: "#555", fontSize: 10 }} />
+              <YAxis domain={["auto", "auto"]} tick={{ fill: "#555", fontSize: 10 }} width={60} tickFormatter={(v) => `$${v}`} />
+              <Tooltip cursor={{ stroke: "#333" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
               <ReferenceLine y={0} stroke="#333" />
-              <Area type="monotone" dataKey="equity" stroke={account.color} strokeWidth={2} fill={`url(#gold-${id})`} />
+              <Area type="monotone" dataKey="equity" stroke={account.color} strokeWidth={2} fill={`url(#perf-${id})`} dot={false} />
             </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Daily P&L (Last 30 Days)</h3>
-          <ResponsiveContainer width="100%" height={200}>
+          ) : (
             <BarChart data={dailyData}>
-              <XAxis dataKey="date" tick={{ fill: "#888", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
+              <XAxis dataKey="date" tick={{ fill: "#555", fontSize: 10 }} />
+              <YAxis tick={{ fill: "#555", fontSize: 10 }} width={60} tickFormatter={(v) => `$${v}`} />
               <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
               <ReferenceLine y={0} stroke="#333" />
-              <Bar dataKey="pnl" fill={account.color} radius={[3, 3, 0, 0]} background={false} />
+              <Bar dataKey="pnl" fill={account.color} radius={[3, 3, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
+          )}
+        </ResponsiveContainer>
       </div>
 
       {/* Calendar */}

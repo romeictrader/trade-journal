@@ -417,7 +417,7 @@ export default function AccountDashboard() {
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Equity Curve</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={equityData}>
+            <AreaChart data={equityData} background={{ fill: "transparent" }}>
               <defs>
                 <linearGradient id={`gold-${id}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={account.color} stopOpacity={0.3} />
@@ -435,9 +435,9 @@ export default function AccountDashboard() {
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Daily P&L (Last 30 Days)</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={dailyData}>
-              <XAxis dataKey="date" tick={{ fill: "#555", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#555", fontSize: 10 }} width={55} />
+            <BarChart data={dailyData} background={{ fill: "transparent" }}>
+              <XAxis dataKey="date" tick={{ fill: "#888", fontSize: 10 }} />
+              <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
               <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
               <ReferenceLine y={0} stroke="#333" />
               <Bar dataKey="pnl" fill={account.color} radius={[3, 3, 0, 0]} />

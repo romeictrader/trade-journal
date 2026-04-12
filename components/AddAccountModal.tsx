@@ -32,6 +32,39 @@ const PRESET_COLORS = [
   "#ef4444", "#f97316", "#ec4899", "#06b6d4",
 ];
 
+function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!enabled)}
+      style={{
+        width: 36,
+        height: 20,
+        borderRadius: 10,
+        border: "none",
+        background: enabled ? "#22c55e" : "#333",
+        cursor: "pointer",
+        padding: 0,
+        position: "relative",
+        transition: "background 0.2s",
+        flexShrink: 0,
+      }}
+    >
+      <span style={{
+        position: "absolute",
+        top: 3,
+        left: enabled ? 19 : 3,
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        background: "#fff",
+        transition: "left 0.2s",
+        display: "block",
+      }} />
+    </button>
+  );
+}
+
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
@@ -50,6 +83,9 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
   const [dailyLoss, setDailyLoss] = useState(1000);
   const [maxDrawdown, setMaxDrawdown] = useState(2500);
   const [profitTarget, setProfitTarget] = useState(3000);
+  const [dailyLossEnabled, setDailyLossEnabled] = useState(true);
+  const [maxDrawdownEnabled, setMaxDrawdownEnabled] = useState(true);
+  const [profitTargetEnabled, setProfitTargetEnabled] = useState(true);
   const [color, setColor] = useState("#c9a84c");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +119,9 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
       daily_loss_limit: dailyLoss,
       max_drawdown: maxDrawdown,
       profit_target: profitTarget,
+      daily_loss_enabled: dailyLossEnabled,
+      max_drawdown_enabled: maxDrawdownEnabled,
+      profit_target_enabled: profitTargetEnabled,
       color,
     });
 
@@ -166,32 +205,44 @@ export default function AddAccountModal({ onClose, onSaved }: AddAccountModalPro
           />
         </FieldRow>
 
-        <FieldRow label="Daily Loss Limit ($)">
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Daily Loss Limit ($)</label>
+            <Toggle enabled={dailyLossEnabled} onChange={setDailyLossEnabled} />
+          </div>
           <input
             type="number"
             value={dailyLoss}
             onChange={(e) => setDailyLoss(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
+            style={{ ...inputStyle, opacity: dailyLossEnabled ? 1 : 0.4, pointerEvents: dailyLossEnabled ? "auto" : "none" }}
           />
-        </FieldRow>
+        </div>
 
-        <FieldRow label="Max Drawdown ($)">
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Drawdown ($)</label>
+            <Toggle enabled={maxDrawdownEnabled} onChange={setMaxDrawdownEnabled} />
+          </div>
           <input
             type="number"
             value={maxDrawdown}
             onChange={(e) => setMaxDrawdown(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
+            style={{ ...inputStyle, opacity: maxDrawdownEnabled ? 1 : 0.4, pointerEvents: maxDrawdownEnabled ? "auto" : "none" }}
           />
-        </FieldRow>
+        </div>
 
-        <FieldRow label="Profit Target ($)">
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Profit Target ($)</label>
+            <Toggle enabled={profitTargetEnabled} onChange={setProfitTargetEnabled} />
+          </div>
           <input
             type="number"
             value={profitTarget}
             onChange={(e) => setProfitTarget(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
+            style={{ ...inputStyle, opacity: profitTargetEnabled ? 1 : 0.4, pointerEvents: profitTargetEnabled ? "auto" : "none" }}
           />
-        </FieldRow>
+        </div>
 
         <FieldRow label="Color">
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

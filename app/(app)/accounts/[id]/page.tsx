@@ -301,10 +301,10 @@ export default function AccountDashboard() {
   const dailyData = sortedDates.map((d) => ({ date: d.slice(5), pnl: dailyMap[d] }));
 
   const ruleItems = [
-    { label: "Daily Loss", current: Math.abs(Math.min(todayPnl, 0)), limit: account.daily_loss_limit, inverted: true },
-    { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
-    { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
-  ];
+    account.daily_loss_enabled !== false && { label: "Daily Loss", current: Math.abs(Math.min(todayPnl, 0)), limit: account.daily_loss_limit, inverted: true },
+    account.max_drawdown_enabled !== false && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
+    account.profit_target_enabled !== false && { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
+  ].filter(Boolean) as { label: string; current: number; limit: number; inverted: boolean }[];
 
   const recentTrades = [...trades].reverse().slice(0, 10);
 
@@ -346,7 +346,10 @@ export default function AccountDashboard() {
       {/* Prop Firm Rules */}
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: "20px", marginBottom: 20 }}>
         <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+        {ruleItems.length === 0 ? (
+          <div style={{ fontSize: 13, color: "#444" }}>No rules enabled.</div>
+        ) : (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${ruleItems.length}, 1fr)`, gap: 20 }}>
           {ruleItems.map((rule) => {
             const pct = Math.min(Math.max((rule.current / rule.limit) * 100, 0), 100);
             const passing = rule.inverted ? rule.current < rule.limit : rule.current >= rule.limit;
@@ -367,6 +370,7 @@ export default function AccountDashboard() {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Stat cards */}

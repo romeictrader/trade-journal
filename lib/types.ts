@@ -47,6 +47,9 @@ export interface Account {
   daily_loss_limit: number;
   max_drawdown: number;
   profit_target: number;
+  daily_loss_enabled: boolean;
+  max_drawdown_enabled: boolean;
+  profit_target_enabled: boolean;
   color: string;
   created_at?: string;
 }

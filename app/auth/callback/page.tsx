@@ -1,22 +1,45 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AuthCallbackPage() {
+function CallbackHandler() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
+
+    async function handleCallback() {
+      const code = searchParams.get("code");
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          router.push("/home");
+          router.refresh();
+          return;
+        }
+      }
+
+      // Fallback: check for existing session (implicit/hash flow)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         router.push("/home");
         router.refresh();
+      } else {
+        router.push("/login");
       }
-    });
-  }, [router]);
+    }
 
+    handleCallback();
+  }, [router, searchParams]);
+
+  return null;
+}
+
+export default function AuthCallbackPage() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a" }}>
       <div style={{ textAlign: "center" }}>
@@ -24,6 +47,9 @@ export default function AuthCallbackPage() {
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <p style={{ color: "#666", fontSize: 14 }}>Signing you in...</p>
       </div>
+      <Suspense>
+        <CallbackHandler />
+      </Suspense>
     </div>
   );
 }

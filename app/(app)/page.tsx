@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Plus, ArrowRight, Trash2 } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -52,23 +52,12 @@ function calcStats(account: Account, trades: Trade[]): AccountStats {
 
 function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelete: (id: string) => void; onEdit: (account: Account) => void }) {
   const { account, totalPnl, winRate, balance } = stats;
-  const router = useRouter();
 
   return (
-    <div
-      onClick={() => router.push(`/accounts/${account.id}`)}
-      style={{
-        position: "relative",
-        background: "#111",
-        border: `1px solid #222`,
-        borderTop: `3px solid ${account.color}`,
-        borderRadius: 12,
-        cursor: "pointer",
-      }}
-    >
+    <div style={{ position: "relative", background: "#111", border: `1px solid #222`, borderTop: `3px solid ${account.color}`, borderRadius: 12 }}>
       {/* Delete — top right */}
       <button
-        onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
+        onClick={() => { if (confirm(`Delete "${account.account_name}"? This cannot be undone.`)) onDelete(account.id); }}
         style={{ position: "absolute", top: 10, right: 10, zIndex: 10, background: "none", border: "none", color: "#555", cursor: "pointer", padding: 4, borderRadius: 5, display: "flex", alignItems: "center" }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
@@ -76,7 +65,7 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
         <Trash2 size={13} />
       </button>
 
-      {/* Card content */}
+      {/* Card content — not a link, just display */}
       <div style={{ padding: "18px 18px 12px" }}>
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{account.prop_firm}</div>
@@ -100,17 +89,17 @@ function AccountCard({ stats, onDelete, onEdit }: { stats: AccountStats; onDelet
         </div>
       </div>
 
-      {/* Bottom row */}
+      {/* Bottom row — Edit left, View Dashboard right */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 14px" }}>
         <button
-          onClick={(e) => { e.stopPropagation(); onEdit(account); }}
+          onClick={() => onEdit(account)}
           style={{ background: "#c9a84c", border: "none", color: "#000", cursor: "pointer", padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}
         >
           Edit
         </button>
-        <div style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4 }}>
+        <Link href={`/accounts/${account.id}`} style={{ display: "flex", alignItems: "center", fontSize: 12, color: "#c9a84c", gap: 4, textDecoration: "none" }}>
           View Dashboard <ArrowRight size={12} />
-        </div>
+        </Link>
       </div>
     </div>
   );

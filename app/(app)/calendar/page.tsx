@@ -102,8 +102,8 @@ export default function CalendarPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", height: "calc(100vh - 52px)", background: "#0d0d0d", overflowY: isMobile ? "auto" : undefined }}>
-      <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", height: isMobile ? undefined : "calc(100vh - 52px)", background: "#0d0d0d", overflowY: isMobile ? "auto" : undefined }}>
+      <div style={{ flex: 1, padding: isMobile ? "16px 12px" : "20px 16px", overflowY: isMobile ? undefined : "auto", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, position: "relative" }}>
@@ -137,7 +137,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Calendar grid with week summaries */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ flex: isMobile ? undefined : 1, display: "flex", flexDirection: "column", gap: 2 }}>
           {weeks.map((week, wi) => {
             // Week P&L
             const weekTrades: Trade[] = [];
@@ -150,10 +150,10 @@ export default function CalendarPage() {
             const weekNum = wi + 1;
 
             return (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", gap: 2, flex: 1, minHeight: isMobile ? 50 : 80 }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(7, 1fr)" : "repeat(7, 1fr) 120px", gap: 2, flex: isMobile ? undefined : 1, height: isMobile ? 72 : undefined, minHeight: isMobile ? undefined : 80 }}>
                 {week.map((day, di) => {
                   if (!day) {
-                    return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4, minHeight: isMobile ? 50 : 80 }} />;
+                    return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;
                   }
                   const ds = dateStr(year, month, day);
                   const dayTrades = byDate[ds];
@@ -170,9 +170,9 @@ export default function CalendarPage() {
                         background: hasTrades ? getCellBg(dayPnl!) : "#111",
                         border: getCellBorder(dayPnl ?? 0, isToday, isSelected),
                         borderRadius: 4,
-                        padding: isMobile ? "4px 5px" : "8px 10px",
+                        padding: isMobile ? "6px 7px" : "8px 10px",
                         cursor: "pointer",
-                        minHeight: isMobile ? 50 : 80,
+                        minHeight: isMobile ? undefined : 80,
                         display: "flex",
                         flexDirection: "column",
                         transition: "filter 0.1s",
@@ -186,7 +186,7 @@ export default function CalendarPage() {
                           <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
                             {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
                           </div>
-                          {!isMobile && <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>}
+                          <div style={{ fontSize: isMobile ? 10 : 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>
                         </>
                       )}
                     </div>

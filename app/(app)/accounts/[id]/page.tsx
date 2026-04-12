@@ -102,9 +102,9 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
         {/* Weeks */}
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {weeks.map((week, wi) => (
-            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, height: isMobile ? 72 : undefined }}>
               {week.map((day, di) => {
-                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: isMobile ? 50 : 80 }} />;
+                if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 3, minHeight: isMobile ? undefined : 80 }} />;
                 const iso = ds(day);
                 const stat = dailyMap[iso];
                 const hasTrades = !!stat;
@@ -119,8 +119,8 @@ function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: {
                       background: hasTrades ? getCellBg(stat.pnl) : "#0d0d0d",
                       border: isSelected || isToday2 ? `1px solid ${color}` : "1px solid #1e1e1e",
                       borderRadius: 3,
-                      padding: isMobile ? "4px 5px" : "6px 8px",
-                      minHeight: isMobile ? 50 : 80,
+                      padding: isMobile ? "6px 7px" : "6px 8px",
+                      minHeight: isMobile ? undefined : 80,
                       cursor: hasTrades ? "pointer" : "default",
                       display: "flex",
                       flexDirection: "column",

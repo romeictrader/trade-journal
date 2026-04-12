@@ -22,6 +22,48 @@ function Skeleton({ width, height }: { width?: string | number; height?: string 
   );
 }
 
+function DonutRing({ pct, color, size = 60 }: { pct: number; color: string; size?: number }) {
+  const r = (size - 10) / 2;
+  const cx = size / 2, cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} style={{ flexShrink: 0 }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#252525" strokeWidth={5} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={5}
+        strokeDasharray={`${circ * Math.min(Math.max(pct, 0), 1)} ${circ}`}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cy})`}
+      />
+    </svg>
+  );
+}
+
+function WinRateRing({ winRate, size = 60 }: { winRate: number; size?: number }) {
+  const r = (size - 10) / 2;
+  const cx = size / 2, cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  const wp = Math.min(Math.max(winRate / 100, 0), 1);
+  const lp = 1 - wp;
+  return (
+    <svg width={size} height={size} style={{ flexShrink: 0 }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#252525" strokeWidth={5} />
+      {wp > 0 && (
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#22c55e" strokeWidth={5}
+          strokeDasharray={`${circ * wp} ${circ}`}
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+      )}
+      {lp > 0 && (
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5}
+          strokeDasharray={`${circ * lp} ${circ}`}
+          strokeDashoffset={-(circ * wp)}
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+      )}
+    </svg>
+  );
+}
+
 function MiniCalendar({ trades, color, selectedDate, onSelectDate, isMobile }: { trades: Trade[]; color: string; selectedDate: string | null; onSelectDate: (d: string | null) => void; isMobile?: boolean }) {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [showWeekends, setShowWeekends] = useState(false);
@@ -421,46 +463,51 @@ export default function AccountDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>Performance</div>
-          {[
-            { label: "Net P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
-            { label: "Expectancy", value: `$${expectancy.toFixed(2)}`, color: expectancy >= 0 ? "#22c55e" : "#ef4444" },
-            { label: "Profit Factor", value: profitFactor.toFixed(2), color: profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444" },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: "#666" }}>{s.label}</span>
-              <span style={{ fontWeight: 700, color: s.color }}>{s.value}</span>
-            </div>
-          ))}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+
+        {/* Net P&L */}
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+          <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Net P&L</div>
+          <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: totalPnl >= 0 ? "#22c55e" : "#ef4444", lineHeight: 1.1 }}>
+            ${totalPnl >= 0 ? "+" : ""}{totalPnl.toFixed(2)}
+          </div>
+          <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>
+            Today: <span style={{ color: todayPnl >= 0 ? "#22c55e" : "#ef4444" }}>{todayPnl >= 0 ? "+" : ""}${todayPnl.toFixed(2)}</span>
+          </div>
         </div>
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>Consistency</div>
-          {[
-            { label: "Win Rate", value: `${winRate.toFixed(1)}%` },
-            { label: "Avg RR", value: avgRR.toFixed(2) },
-            { label: "W / L", value: `${wins} / ${losses}` },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: "#666" }}>{s.label}</span>
-              <span style={{ fontWeight: 700, color: "#fff" }}>{s.value}</span>
-            </div>
-          ))}
+
+        {/* Win Rate */}
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Win Rate</div>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{winRate.toFixed(1)}%</div>
+            <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>{wins}W / {losses}L</div>
+          </div>
+          <WinRateRing winRate={winRate} size={isMobile ? 50 : 60} />
         </div>
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>Risk</div>
-          {[
-            { label: "Max Drawdown", value: `$${maxDD.toFixed(2)}`, color: maxDD > account.max_drawdown * 0.8 ? "#ef4444" : "#fff" },
-            { label: "Avg Loss", value: losses > 0 ? `$${(grossLoss / losses).toFixed(2)}` : "—", color: "#ef4444" },
-            { label: "Total Trades", value: String(trades.length) },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: "#666" }}>{s.label}</span>
-              <span style={{ fontWeight: 700, color: (s as { color?: string }).color ?? "#fff" }}>{s.value}</span>
+
+        {/* Profit Factor */}
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Profit Factor</div>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444", lineHeight: 1.1 }}>
+              {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
-          ))}
+            <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Target: 2.0+</div>
+          </div>
+          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
         </div>
+
+        {/* Avg R:R */}
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: isMobile ? 14 : 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Avg R:R</div>
+            <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: avgRR >= 1 ? "#22c55e" : "#c9a84c", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
+            <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>Expectancy: ${expectancy.toFixed(0)}</div>
+          </div>
+          <DonutRing pct={avgRR / 3} color={avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
+        </div>
+
       </div>
 
       {/* Charts */}

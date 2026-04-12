@@ -71,7 +71,8 @@ export default function TradesPage() {
       </div>
 
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #222" }}>
               {cols.map(({ key, label }) => (
@@ -131,6 +132,7 @@ export default function TradesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

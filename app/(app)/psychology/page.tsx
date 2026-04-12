@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PsychologyCheckin } from "@/lib/types";
 import { CheckCircle, XCircle, Flame, Trash2, Trophy, Zap, Star } from "lucide-react";
 import MultiTagInput from "@/components/MultiTagInput";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const RULES_OPTIONS = [
   "Overtraded", "Overleveraged", "Moved SL", "FOMO Entry", "Chased Entry",
@@ -13,6 +14,7 @@ const RULES_OPTIONS = [
 ];
 
 export default function PsychologyPage() {
+  const isMobile = useIsMobile();
   const [checkins, setCheckins] = useState<PsychologyCheckin[]>([]);
   const [userId, setUserId] = useState("");
 
@@ -117,7 +119,7 @@ export default function PsychologyPage() {
     <div style={{ padding: 24 }}>
       <h1 style={{ margin: "0 0 24px", fontSize: 22, fontWeight: 700 }}>Psychology</h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
         {/* Left: Check-in form */}
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 24 }}>
           <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Daily Check-in — {date}</h3>

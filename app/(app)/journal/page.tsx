@@ -24,6 +24,7 @@ import {
   isSameMonth,
   isToday,
 } from "date-fns";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const MOODS = ["😞", "😐", "😊", "😄", "🔥"];
 
@@ -45,6 +46,8 @@ export default function JournalPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [pasteUrl, setPasteUrl] = useState("");
   const [showPhotoPanel, setShowPhotoPanel] = useState(false);
+  const [showMobileCalendar, setShowMobileCalendar] = useState(false);
+  const isMobile = useIsMobile();
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -230,9 +233,22 @@ export default function JournalPage() {
   })();
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 52px)" }}>
+    <div style={{ display: "flex", height: "calc(100vh - 52px)", flexDirection: isMobile ? "column" : "row" }}>
+      {/* Mobile calendar toggle */}
+      {isMobile && (
+        <div style={{ padding: "10px 16px", borderBottom: "1px solid #222", background: "#111" }}>
+          <button
+            onClick={() => setShowMobileCalendar(!showMobileCalendar)}
+            style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, color: "#c9a84c", fontSize: 13, fontWeight: 600, padding: "7px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <ChevronLeft size={14} style={{ transform: showMobileCalendar ? "rotate(-90deg)" : "rotate(90deg)", transition: "transform 0.2s" }} />
+            {showMobileCalendar ? "Hide Calendar" : "📅 " + displayDate}
+          </button>
+        </div>
+      )}
+
       {/* Left: Calendar */}
-      <div style={{ width: 280, background: "#111", borderRight: "1px solid #222", display: "flex", flexDirection: "column", padding: 16, flexShrink: 0 }}>
+      <div style={{ width: isMobile ? "100%" : 280, background: "#111", borderRight: isMobile ? "none" : "1px solid #222", borderBottom: isMobile ? "1px solid #222" : "none", display: isMobile ? (showMobileCalendar ? "flex" : "none") : "flex", flexDirection: "column", padding: 16, flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <button onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}>
             <ChevronLeft size={16} />
@@ -259,7 +275,7 @@ export default function JournalPage() {
             return (
               <button
                 key={iso}
-                onClick={() => setSelectedDate(iso)}
+                onClick={() => { setSelectedDate(iso); if (isMobile) setShowMobileCalendar(false); }}
                 style={{
                   background: isSelected ? "#c9a84c" : todayDay ? "#1a1a1a" : "none",
                   border: todayDay && !isSelected ? "1px solid #333" : "1px solid transparent",
@@ -291,7 +307,7 @@ export default function JournalPage() {
       </div>
 
       {/* Right: View or Edit */}
-      <div style={{ flex: 1, padding: "24px 32px", overflowY: "auto" }}>
+      <div style={{ flex: 1, padding: isMobile ? "16px" : "24px 32px", overflowY: "auto" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
 
           {/* Header */}

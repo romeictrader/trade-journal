@@ -15,11 +15,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface SidebarProps {
   userEmail: string;
+  isMobile?: boolean;
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 const navItems = [
@@ -31,7 +35,7 @@ const navItems = [
   { label: "Psychology", icon: Brain, href: "/psychology" },
 ];
 
-export default function Sidebar({ userEmail }: SidebarProps) {
+export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -42,7 +46,8 @@ export default function Sidebar({ userEmail }: SidebarProps) {
     router.push("/login");
   }
 
-  const width = collapsed ? 60 : 200;
+  const width = isMobile ? 240 : (collapsed ? 60 : 200);
+  const showLabels = isMobile ? true : !collapsed;
 
   return (
     <div
@@ -56,52 +61,63 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         borderRight: "1px solid #222",
         display: "flex",
         flexDirection: "column",
-        transition: "width 0.2s",
+        transition: "transform 0.25s, width 0.2s",
         zIndex: 50,
         overflow: "hidden",
+        transform: isMobile ? (mobileOpen ? "translateX(0)" : "translateX(-100%)") : "none",
       }}
     >
       {/* Logo */}
       <div
         style={{
-          padding: collapsed ? "16px 0" : "16px",
+          padding: !showLabels ? "16px 0" : "16px",
           borderBottom: "1px solid #222",
           display: "flex",
           alignItems: "center",
           gap: 10,
-          justifyContent: collapsed ? "center" : "flex-start",
+          justifyContent: !showLabels ? "center" : "space-between",
         }}
       >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            background: "#c9a84c",
-            borderRadius: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: 700,
-            fontSize: 14,
-            color: "#000",
-            flexShrink: 0,
-          }}
-        >
-          1:1
-        </div>
-        {!collapsed && (
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
-              One To One Journal
-            </div>
-            <div style={{ fontSize: 10, color: "#888" }}>Pro Edition</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              background: "#c9a84c",
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              fontSize: 14,
+              color: "#000",
+              flexShrink: 0,
+            }}
+          >
+            1:1
           </div>
+          {showLabels && (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
+                One To One Journal
+              </div>
+              <div style={{ fontSize: 10, color: "#888" }}>Pro Edition</div>
+            </div>
+          )}
+        </div>
+        {isMobile && (
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}
+          >
+            <X size={18} />
+          </button>
         )}
       </div>
 
       {/* Nav sections */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 0" }}>
-        {!collapsed && (
+        {showLabels && (
           <div
             style={{
               fontSize: 10,
@@ -121,12 +137,13 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             <Link
               key={href}
               href={href}
+              onClick={isMobile ? onClose : undefined}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                padding: collapsed ? "10px 0" : "10px 16px",
-                justifyContent: collapsed ? "center" : "flex-start",
+                padding: !showLabels ? "10px 0" : "10px 16px",
+                justifyContent: !showLabels ? "center" : "flex-start",
                 background: active ? "#1a1a1a" : "transparent",
                 borderLeft: active ? "2px solid #c9a84c" : "2px solid transparent",
                 color: active ? "#c9a84c" : "#888",
@@ -137,13 +154,13 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               }}
             >
               <Icon size={16} style={{ flexShrink: 0 }} />
-              {!collapsed && <span>{label}</span>}
+              {showLabels && <span>{label}</span>}
             </Link>
           );
         })}
 
         <div style={{ height: 16 }} />
-        {!collapsed && (
+        {showLabels && (
           <div
             style={{
               fontSize: 10,
@@ -159,30 +176,28 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         )}
         <Link
           href="/settings"
+          onClick={isMobile ? onClose : undefined}
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
-            padding: collapsed ? "10px 0" : "10px 16px",
-            justifyContent: collapsed ? "center" : "flex-start",
+            padding: !showLabels ? "10px 0" : "10px 16px",
+            justifyContent: !showLabels ? "center" : "flex-start",
             background: pathname === "/settings" ? "#1a1a1a" : "transparent",
-            borderLeft:
-              pathname === "/settings"
-                ? "2px solid #c9a84c"
-                : "2px solid transparent",
+            borderLeft: pathname === "/settings" ? "2px solid #c9a84c" : "2px solid transparent",
             color: pathname === "/settings" ? "#c9a84c" : "#888",
             textDecoration: "none",
             fontSize: 13,
           }}
         >
           <Settings size={16} style={{ flexShrink: 0 }} />
-          {!collapsed && <span>Settings</span>}
+          {showLabels && <span>Settings</span>}
         </Link>
       </div>
 
       {/* Bottom: user + sign out */}
-      <div style={{ borderTop: "1px solid #222", padding: collapsed ? "12px 0" : "12px 16px" }}>
-        {!collapsed && (
+      <div style={{ borderTop: "1px solid #222", padding: !showLabels ? "12px 0" : "12px 16px" }}>
+        {showLabels && (
           <div
             style={{
               fontSize: 11,
@@ -208,37 +223,39 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             cursor: "pointer",
             fontSize: 13,
             padding: 0,
-            justifyContent: collapsed ? "center" : "flex-start",
+            justifyContent: !showLabels ? "center" : "flex-start",
             width: "100%",
           }}
         >
           <LogOut size={15} />
-          {!collapsed && <span>Sign Out</span>}
+          {showLabels && <span>Sign Out</span>}
         </button>
       </div>
 
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: -12,
-          width: 24,
-          height: 24,
-          background: "#222",
-          border: "1px solid #333",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          color: "#888",
-          padding: 0,
-        }}
-      >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
+      {/* Collapse toggle — desktop only */}
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: -12,
+            width: 24,
+            height: 24,
+            background: "#222",
+            border: "1px solid #333",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "#888",
+            padding: 0,
+          }}
+        >
+          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
+      )}
     </div>
   );
 }

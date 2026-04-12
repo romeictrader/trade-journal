@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import AppShell from "@/components/AppShell";
 
 export default async function AppLayout({
   children,
@@ -18,18 +17,8 @@ export default async function AppLayout({
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0a" }}>
-      <Sidebar userEmail={user.email ?? ""} />
-      <Header />
-      <main
-        style={{
-          marginLeft: 200,
-          paddingTop: 52,
-          minHeight: "100vh",
-        }}
-      >
-        {children}
-      </main>
-    </div>
+    <AppShell userEmail={user.email ?? ""}>
+      {children}
+    </AppShell>
   );
 }

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, ReferenceLine, Cell,
 } from "recharts";
 import { TrendingUp, Target, BarChart2, DollarSign, ArrowUpDown, TrendingDown } from "lucide-react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type Tab = "overview" | "contract" | "time" | "setup";
 
@@ -16,6 +17,7 @@ export default function AnalysisPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     async function load() {
@@ -135,7 +137,7 @@ export default function AnalysisPage() {
       <h1 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700 }}>Analysis</h1>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {(["overview", "contract", "time", "setup"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)} style={tabStyle(t)}>
             {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -145,7 +147,7 @@ export default function AnalysisPage() {
 
       {tab === "overview" && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(6, 1fr)", gap: 14, marginBottom: 20 }}>
             <StatCard label="Total P&L" value={`$${totalPnl.toFixed(2)}`} valueColor={totalPnl >= 0 ? "#22c55e" : "#ef4444"} icon={<DollarSign size={15} />} />
             <StatCard label="Win Rate" value={`${winRate.toFixed(1)}%`} icon={<Target size={15} />} />
             <StatCard label="Profit Factor" value={profitFactor.toFixed(2)} icon={<TrendingUp size={15} />} />
@@ -154,7 +156,7 @@ export default function AnalysisPage() {
             <StatCard label="Expectancy" value={`$${expectancy.toFixed(2)}`} valueColor={expectancy >= 0 ? "#22c55e" : "#ef4444"} icon={<BarChart2 size={15} />} />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 16 }}>
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
               <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "#888" }}>Equity Curve</h3>
               <ResponsiveContainer width="100%" height={200}>

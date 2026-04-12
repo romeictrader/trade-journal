@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { Plus, ArrowRight, Trash2 } from "lucide-react";
 import AddAccountModal from "@/components/AddAccountModal";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 function Skeleton({ width, height }: { width?: string | number; height?: string | number }) {
   return (
@@ -139,6 +140,7 @@ function AccountCard({ stats, onDelete }: { stats: AccountStats; onDelete: (id: 
 }
 
 export default function DashboardPage() {
+  const isMobile = useIsMobile();
   const [accountStats, setAccountStats] = useState<AccountStats[]>([]);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -207,11 +209,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 1400 }}>
+    <div style={{ padding: isMobile ? 16 : 24, maxWidth: 1400 }}>
       <style>{`@keyframes pulse { 0%,100%{background-position:200% 0} 50%{background-position:-200% 0} }`}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Accounts Overview</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All prop firm accounts in one place</p>

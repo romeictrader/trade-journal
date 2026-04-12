@@ -43,6 +43,12 @@ body {
 .recharts-cursor-background {
   fill: transparent !important;
 }
+.recharts-tooltip-cursor,
+.recharts-tooltip-cursor rect,
+.recharts-tooltip-cursor path {
+  fill: transparent !important;
+  stroke: transparent !important;
+}
 .recharts-text, .recharts-label {
   fill: #888 !important;
 }

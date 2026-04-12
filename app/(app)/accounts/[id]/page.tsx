@@ -426,7 +426,7 @@ export default function AccountDashboard() {
               </defs>
               <XAxis dataKey="date" hide />
               <YAxis domain={["auto", "auto"]} tick={{ fill: "#555", fontSize: 11 }} width={60} />
-              <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+              <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
               <ReferenceLine y={0} stroke="#333" />
               <Area type="monotone" dataKey="equity" stroke={account.color} strokeWidth={2} fill={`url(#gold-${id})`} />
             </AreaChart>
@@ -438,7 +438,7 @@ export default function AccountDashboard() {
             <BarChart data={dailyData}>
               <XAxis dataKey="date" tick={{ fill: "#888", fontSize: 10 }} />
               <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
-              <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+              <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
               <ReferenceLine y={0} stroke="#333" />
               <Bar dataKey="pnl" fill={account.color} radius={[3, 3, 0, 0]} background={false} />
             </BarChart>

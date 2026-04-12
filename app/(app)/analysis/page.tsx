@@ -179,7 +179,7 @@ export default function AnalysisPage() {
                 <BarChart data={dowData}>
                   <XAxis dataKey="day" tick={{ fill: "#aaa", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
-                  <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+                  <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
                   <ReferenceLine y={0} stroke="#333" />
                   <Bar dataKey="pnl" radius={[4, 4, 0, 0]} background={false}>
                     {dowData.map((entry, i) => (
@@ -227,7 +227,7 @@ export default function AnalysisPage() {
               <BarChart data={contractData}>
                 <XAxis dataKey="contract" tick={{ fill: "#aaa", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
-                <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+                <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
                 <ReferenceLine y={0} stroke="#333" />
                 <Bar dataKey="totalPnl" radius={[4, 4, 0, 0]} background={false}>
                   {contractData.map((entry, i) => (
@@ -275,7 +275,7 @@ export default function AnalysisPage() {
               <BarChart data={dowData}>
                 <XAxis dataKey="day" tick={{ fill: "#aaa", fontSize: 12 }} />
                 <YAxis tick={{ fill: "#888", fontSize: 10 }} width={55} />
-                <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
+                <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`$${(v as number).toFixed(2)}`, "P&L"]} />
                 <ReferenceLine y={0} stroke="#333" />
                 <Bar dataKey="pnl" radius={[4, 4, 0, 0]} background={false}>
                   {dowData.map((entry, i) => (
@@ -296,7 +296,7 @@ export default function AnalysisPage() {
               <BarChart data={setupData}>
                 <XAxis dataKey="setup" tick={{ fill: "#aaa", fontSize: 10 }} />
                 <YAxis domain={[0, 100]} tick={{ fill: "#888", fontSize: 10 }} width={40} unit="%" />
-                <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`${(v as number).toFixed(1)}%`, "Win Rate"]} />
+                <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8 }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#aaa" }} formatter={(v) => [`${(v as number).toFixed(1)}%`, "Win Rate"]} />
                 <Bar dataKey="winRate" fill="#c9a84c" radius={[4, 4, 0, 0]} background={false} />
               </BarChart>
             </ResponsiveContainer>

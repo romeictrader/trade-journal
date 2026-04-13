@@ -127,72 +127,81 @@ const FIRM_DATA: Record<string, FirmConfig> = {
   bulenox: {
     plans: [
       { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 1000, dd: 1500, pt: 1500 },
-        50000:  { daily: 1500, dd: 2500, pt: 2000 },
-        100000: { daily: 2000, dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
+        25000:  { daily: 500,  dd: 1500, pt: 1500 },
+        50000:  { daily: 1100, dd: 2500, pt: 2000 },
+        100000: { daily: 2200, dd: 3000, pt: 6000 },
+        150000: { daily: 3300, dd: 4500, pt: 9000 },
       }},
     ],
   },
   tradeday: {
     plans: [
-      { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 1000, dd: 1500, pt: 1500 },
-        50000:  { daily: 1500, dd: 2000, pt: 3000 },
-        100000: { daily: 2500, dd: 3500, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      { key: "intraday", label: "Intraday", sizes: {
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4000, pt: 9000 },
+      }},
+      { key: "eod", label: "EOD", sizes: {
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4000, pt: 9000 },
+      }},
+      { key: "static", label: "Static", sizes: {
+        50000:  { daily: 0, dd: 500,  pt: 1500 },
+        100000: { daily: 0, dd: 750,  pt: 2500 },
+        150000: { daily: 0, dd: 1000, pt: 3750 },
       }},
     ],
   },
   takeprofittrader: {
     plans: [
       { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 1000, dd: 1500, pt: 1500 },
-        50000:  { daily: 1200, dd: 2000, pt: 3000 },
-        100000: { daily: 2000, dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
+        25000:  { daily: 0, dd: 1500, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
       }},
     ],
   },
   tickticktrader: {
     plans: [
       { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 1000, dd: 1500, pt: 1500 },
-        50000:  { daily: 1200, dd: 2000, pt: 3000 },
-        100000: { daily: 2000, dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
       }},
     ],
   },
   fundednext: {
     plans: [
       { key: "default", label: "Standard", sizes: {
-        50000:  { daily: 1200, dd: 2000, pt: 3000 },
-        100000: { daily: 2000, dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
-        200000: { daily: 3500, dd: 5000, pt: 12000 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+        200000: { daily: 0, dd: 5000, pt: 12000 },
       }},
     ],
   },
   lucidtrading: {
     plans: [
       { key: "flex", label: "LucidFlex", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        25000:  { daily: 0, dd: 1000, pt: 1250 },
         50000:  { daily: 0, dd: 2000, pt: 3000 },
         100000: { daily: 0, dd: 3000, pt: 6000 },
         150000: { daily: 0, dd: 4500, pt: 9000 },
       }},
       { key: "pro", label: "LucidPro", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
+        25000:  { daily: 0,    dd: 1000, pt: 1250 },
+        50000:  { daily: 1200, dd: 2000, pt: 3000 },
+        100000: { daily: 1800, dd: 3000, pt: 6000 },
+        150000: { daily: 2700, dd: 4500, pt: 9000 },
       }},
       { key: "direct", label: "LucidDirect", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
+        25000:  { daily: 0,    dd: 1000, pt: 1250 },
+        50000:  { daily: 1200, dd: 2000, pt: 3000 },
+        100000: { daily: 0,    dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 5000, pt: 9000 },
       }},
     ],
   },
@@ -209,8 +218,8 @@ const FIRM_DATA: Record<string, FirmConfig> = {
         150000: { daily: 0, dd: 5250,  pt: 12000 },
       }},
       { key: "zero", label: "Zero", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 4000, pt: 6000 },
+        50000:  { daily: 1000, dd: 2000, pt: 3000 },
+        100000: { daily: 2000, dd: 4000, pt: 6000 },
       }},
     ],
   },

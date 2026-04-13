@@ -61,9 +61,7 @@ export default function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a0a", padding: "0 24px" }}>
       {/* Logo */}
       <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, background: "#c9a84c", borderRadius: 12, fontWeight: 800, fontSize: 22, color: "#000", marginBottom: 0 }}>
-          TJ
-        </div>
+        <img src="/_8fVm6SiEQhKVeLdYhFCdkw_NxElQmlWS96etNmJVT7LXw_cover_8k.png" alt="Logo" style={{ width: 100, height: 100, objectFit: "contain" }} />
       </div>
 
       {/* Heading */}

@@ -382,10 +382,11 @@ export default function AccountDashboard() {
     runningBal += eodPnl[date];
     if (runningBal > hwm) hwm = runningBal;
   }
-  // Trailing limit: follows HWM upward, locks permanently at starting_balance
+  // Trailing floor: follows HWM upward, locks permanently at starting_balance
   const trailingLimit = Math.min(hwm - account.max_drawdown, account.starting_balance);
-  // Current drawdown from HWM — this is what counts against the max_drawdown rule
-  const maxDD = Math.max(0, hwm - balance);
+  // Effective peak caps at starting_balance + max_drawdown (once floor locks, drawdown measures from there)
+  const effectivePeak = Math.min(hwm, account.starting_balance + account.max_drawdown);
+  const maxDD = Math.max(0, effectivePeak - balance);
 
   const rrTrades = trades.filter((t) => t.rr != null);
   const avgRR = rrTrades.length > 0 ? rrTrades.reduce((s, t) => s + (t.rr ?? 0), 0) / rrTrades.length : 0;
@@ -450,26 +451,45 @@ export default function AccountDashboard() {
 
       {/* Prop Firm Rules */}
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: "20px", marginBottom: 20 }}>
-        <h3 style={{ margin: "0 0 16px", fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
+          {account.max_drawdown_enabled !== false && (
+            <span style={{ fontSize: 11, color: trailingLimit >= account.starting_balance ? "#c9a84c" : "#555", fontWeight: 600 }}>
+              {trailingLimit >= account.starting_balance ? "Floor Locked" : "Trailing"}
+            </span>
+          )}
+        </div>
         {ruleItems.length === 0 ? (
           <div style={{ fontSize: 13, color: "#444" }}>No rules enabled.</div>
         ) : (
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : `repeat(${ruleItems.length}, 1fr)`, gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : `repeat(${ruleItems.length}, 1fr)`, gap: isMobile ? 16 : 24 }}>
           {ruleItems.map((rule) => {
             const pct = Math.min(Math.max((rule.current / rule.limit) * 100, 0), 100);
+            const isDD = rule.label === "Max Drawdown";
+            const remaining = isDD ? Math.max(0, balance - trailingLimit) : undefined;
+            const dangerZone = rule.inverted && pct >= 80;
+            const violated = rule.inverted && pct >= 100;
             return (
               <div key={rule.label}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
-                  <span style={{ color: "#888" }}>{rule.label}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 12 }}>
+                  <span style={{ color: "#888", fontWeight: 500 }}>{rule.label}</span>
                   <span style={{ fontWeight: 600 }}>
-                    <span style={{ color: rule.inverted ? (rule.current >= rule.limit ? "#ef4444" : "#fff") : (rule.current >= rule.limit ? "#22c55e" : "#fff") }}>${rule.current.toFixed(0)}</span>
-                    <span style={{ color: "#555" }}> / </span>
-                    <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toFixed(0)}</span>
+                    <span style={{ color: violated ? "#ef4444" : dangerZone ? "#f59e0b" : rule.inverted ? "#fff" : (pct >= 100 ? "#22c55e" : "#fff") }}>${rule.current.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                    <span style={{ color: "#444" }}> / </span>
+                    <span style={{ color: rule.inverted ? "#ef4444" : "#22c55e" }}>${rule.limit.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                   </span>
                 </div>
-                <div style={{ background: "#222", borderRadius: 4, height: 6 }}>
-                  <div style={{ height: 6, borderRadius: 4, width: `${pct}%`, background: rule.inverted ? "#ef4444" : pct >= 100 ? "#22c55e" : "#c9a84c", transition: "width 0.3s" }} />
+                <div style={{ background: "#1a1a1a", borderRadius: 4, height: 8, position: "relative", overflow: "hidden" }}>
+                  <div style={{ height: 8, borderRadius: 4, width: `${pct}%`, background: rule.inverted ? (violated ? "#ef4444" : dangerZone ? "#f59e0b" : "#ef4444") : (pct >= 100 ? "#22c55e" : "#c9a84c"), transition: "width 0.4s ease", opacity: violated ? 1 : 0.85 }} />
                 </div>
+                {isDD && remaining !== undefined && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10 }}>
+                    <span style={{ color: "#444" }}>Floor: <span style={{ color: "#666" }}>${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 0 })}</span></span>
+                    <span style={{ color: remaining <= account.max_drawdown * 0.2 ? "#ef4444" : remaining <= account.max_drawdown * 0.5 ? "#f59e0b" : "#444" }}>
+                      Remaining: <span style={{ fontWeight: 600 }}>${remaining.toLocaleString("en-US", { minimumFractionDigits: 0 })}</span>
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}

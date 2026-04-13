@@ -27,6 +27,7 @@ const inputStyle: React.CSSProperties = {
 const PROP_FIRM_SEEDS = [
   "APEX", "TopstepX", "Bulenox", "E8", "FTMO", "TradeDay",
   "FastTrackTrading", "Earn2Trade", "MyFundedFutures", "Topstep",
+  "Alpha Futures", "Lucid Trading",
 ];
 const PRESET_SIZES = [10000, 25000, 50000, 100000, 150000, 200000, 250000];
 
@@ -73,6 +74,18 @@ const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
     50000:  { daily: 1500,  dd: 2000,  pt: 3000  },
     100000: { daily: 2500,  dd: 3500,  pt: 6000  },
   },
+  alphafutures: {
+    25000:  { daily: 750,   dd: 1500,  pt: 1500  },
+    50000:  { daily: 1250,  dd: 2500,  pt: 3000  },
+    100000: { daily: 1500,  dd: 3000,  pt: 6000  },
+    150000: { daily: 2250,  dd: 4500,  pt: 9000  },
+  },
+  lucidtrading: {
+    25000:  { daily: 750,   dd: 1500,  pt: 1500  },
+    50000:  { daily: 1250,  dd: 2500,  pt: 3000  },
+    100000: { daily: 1750,  dd: 3500,  pt: 6000  },
+    150000: { daily: 2500,  dd: 5000,  pt: 9000  },
+  },
 };
 
 // Generic fallback by size
@@ -94,6 +107,9 @@ function normalizeFirm(name: string): string {
   if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
   if (n.includes("bulenox")) return "bulenox";
   if (n.includes("tradeday")) return "tradeday";
+  if (n.includes("alpha") && n.includes("future")) return "alphafutures";
+  if (n.includes("alphafuture")) return "alphafutures";
+  if (n.includes("lucid")) return "lucidtrading";
   return "";
 }
 
@@ -159,6 +175,17 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
   const [dailyLoss, setDailyLoss] = useState(account?.daily_loss_limit ?? 1000);
   const [maxDrawdown, setMaxDrawdown] = useState(account?.max_drawdown ?? 2500);
   const [profitTarget, setProfitTarget] = useState(account?.profit_target ?? 3000);
+
+  // Auto-fill rules when firm or size changes (skip in edit mode)
+  useEffect(() => {
+    if (isEdit) return;
+    const s = getSuggestion(propFirm, accountSize);
+    if (s) {
+      setDailyLoss(s.daily);
+      setMaxDrawdown(s.dd);
+      setProfitTarget(s.pt);
+    }
+  }, [propFirm, accountSize, isEdit]);
   const [dailyLossEnabled, setDailyLossEnabled] = useState(account?.daily_loss_enabled ?? true);
   const [maxDrawdownEnabled, setMaxDrawdownEnabled] = useState(account?.max_drawdown_enabled ?? true);
   const [profitTargetEnabled, setProfitTargetEnabled] = useState(account?.profit_target_enabled ?? true);
@@ -282,29 +309,6 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
             style={inputStyle}
           />
         </FieldRow>
-
-        {/* Suggested values banner */}
-        {(() => {
-          const s = getSuggestion(propFirm, accountSize);
-          if (!s) return null;
-          return (
-            <div style={{ background: "#c9a84c11", border: "1px solid #c9a84c33", borderRadius: 8, padding: "10px 14px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 11, color: "#c9a84c", fontWeight: 700, marginBottom: 2 }}>Suggested values for ${(accountSize / 1000).toFixed(0)}K{normalizeFirm(propFirm) ? ` · ${propFirm}` : ""}</div>
-                <div style={{ fontSize: 11, color: "#888" }}>
-                  Daily ${s.daily.toLocaleString()} · DD ${s.dd.toLocaleString()} · PT ${s.pt.toLocaleString()}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setDailyLoss(s.daily); setMaxDrawdown(s.dd); setProfitTarget(s.pt); }}
-                style={{ background: "#c9a84c", border: "none", borderRadius: 6, color: "#000", fontWeight: 700, fontSize: 11, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
-              >
-                Apply
-              </button>
-            </div>
-          );
-        })()}
 
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>

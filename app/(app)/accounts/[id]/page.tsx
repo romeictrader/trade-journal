@@ -372,7 +372,20 @@ export default function AccountDashboard() {
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
   const balance = account.starting_balance + totalPnl;
 
-  const maxDD = Math.max(0, -totalPnl); // drawdown from starting balance (only when in net loss)
+  // === Trailing drawdown calculation ===
+  // Build end-of-day P&L map and compute High Water Mark
+  const eodPnl: Record<string, number> = {};
+  for (const t of trades) eodPnl[t.date] = (eodPnl[t.date] ?? 0) + t.pnl;
+  let hwm = account.starting_balance;
+  let runningBal = account.starting_balance;
+  for (const date of Object.keys(eodPnl).sort()) {
+    runningBal += eodPnl[date];
+    if (runningBal > hwm) hwm = runningBal;
+  }
+  // Trailing limit: follows HWM upward, locks permanently at starting_balance
+  const trailingLimit = Math.min(hwm - account.max_drawdown, account.starting_balance);
+  // Current drawdown from HWM — this is what counts against the max_drawdown rule
+  const maxDD = Math.max(0, hwm - balance);
 
   const rrTrades = trades.filter((t) => t.rr != null);
   const avgRR = rrTrades.length > 0 ? rrTrades.reduce((s, t) => s + (t.rr ?? 0), 0) / rrTrades.length : 0;
@@ -426,7 +439,7 @@ export default function AccountDashboard() {
         {[
           { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff" },
           { label: "Total P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
-          { label: "Max Drawdown", value: `$${maxDD.toFixed(2)}`, color: maxDD > account.max_drawdown * 0.8 ? "#ef4444" : "#fff" },
+          { label: "DD Floor", value: account.max_drawdown_enabled !== false ? `$${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—", color: balance <= trailingLimit * 1.02 ? "#ef4444" : maxDD > account.max_drawdown * 0.8 ? "#f59e0b" : "#fff" },
         ].map((item) => (
           <div key={item.label}>
             <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{item.label}</div>

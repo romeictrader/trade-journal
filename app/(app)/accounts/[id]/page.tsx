@@ -26,14 +26,20 @@ function DonutRing({ pct, color, size = 60 }: { pct: number; color: string; size
   const r = (size - 10) / 2;
   const cx = size / 2, cy = size / 2;
   const circ = 2 * Math.PI * r;
+  const filled = Math.min(Math.max(pct, 0), 1);
+  const empty = 1 - filled;
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#252525" strokeWidth={5} />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={5}
-        strokeDasharray={`${circ * Math.min(Math.max(pct, 0), 1)} ${circ}`}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
+      {/* Red background (unfilled portion) */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5} />
+      {/* Colored filled portion */}
+      {filled > 0 && (
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={5}
+          strokeDasharray={`${circ * filled} ${circ}`}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+      )}
     </svg>
   );
 }
@@ -46,17 +52,12 @@ function WinRateRing({ winRate, size = 60 }: { winRate: number; size?: number })
   const lp = 1 - wp;
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#252525" strokeWidth={5} />
+      {/* Red base (losses) */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5} />
+      {/* Green wins arc */}
       {wp > 0 && (
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#22c55e" strokeWidth={5}
           strokeDasharray={`${circ * wp} ${circ}`}
-          transform={`rotate(-90 ${cx} ${cy})`}
-        />
-      )}
-      {lp > 0 && wp > 0 && (
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5}
-          strokeDasharray={`${circ * lp} ${circ}`}
-          strokeDashoffset={-(circ * wp)}
           transform={`rotate(-90 ${cx} ${cy})`}
         />
       )}

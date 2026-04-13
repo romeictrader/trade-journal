@@ -61,7 +61,7 @@ export default function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a0a", padding: "0 24px" }}>
       {/* Logo */}
       <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <img src="/_8fVm6SiEQhKVeLdYhFCdkw_NxElQmlWS96etNmJVT7LXw_cover_8k.png" alt="Logo" style={{ width: 100, height: 100, objectFit: "contain" }} />
+        <img src="/logo.png" alt="Logo" style={{ width: 100, height: 100, objectFit: "contain" }} />
       </div>
 
       {/* Heading */}

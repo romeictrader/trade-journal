@@ -25,91 +25,133 @@ const inputStyle: React.CSSProperties = {
 };
 
 const PROP_FIRM_SEEDS = [
-  "APEX", "TopstepX", "Bulenox", "E8", "FTMO", "TradeDay",
-  "FastTrackTrading", "Earn2Trade", "MyFundedFutures", "Topstep",
-  "Alpha Futures", "Lucid Trading",
+  "Apex Trader Funding", "Topstep", "TopstepX", "Tradeify",
+  "My Funded Futures", "MyFundedFutures", "Phidias",
+  "Bulenox", "TradeDay", "Earn2Trade",
+  "Take Profit Trader", "TickTick Trader", "Lucid Trading",
+  "FundedNext", "Blue Guardian", "Aqua Funded",
 ];
-const PRESET_SIZES = [10000, 25000, 50000, 100000, 150000, 200000, 250000];
+const PRESET_SIZES = [10000, 25000, 50000, 75000, 100000, 150000, 200000, 250000, 300000];
 
 // { daily_loss, max_drawdown, profit_target }
 type Preset = { daily: number; dd: number; pt: number };
 
 const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
+  // Apex Trader Funding — March 2026, NO daily loss limit
   apex: {
-    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
-    50000:  { daily: 1500,  dd: 2500,  pt: 3000  },
-    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
-    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
-    250000: { daily: 4500,  dd: 6500,  pt: 15000 },
-    300000: { daily: 5000,  dd: 7500,  pt: 20000 },
+    25000:  { daily: 0, dd: 1000,  pt: 1500  },
+    50000:  { daily: 0, dd: 2500,  pt: 3000  },
+    75000:  { daily: 0, dd: 2750,  pt: 4250  },
+    100000: { daily: 0, dd: 3000,  pt: 6000  },
+    150000: { daily: 0, dd: 5000,  pt: 9000  },
+    250000: { daily: 0, dd: 7500,  pt: 12500 },
+    300000: { daily: 0, dd: 10000, pt: 20000 },
   },
+  // Topstep — EOD trailing, locks at starting balance
   topstep: {
-    50000:  { daily: 1000,  dd: 2000,  pt: 3000  },
-    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
-    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+    50000:  { daily: 1000, dd: 2000, pt: 3000 },
+    100000: { daily: 2000, dd: 3000, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  earn2trade: {
-    25000:  { daily: 1050,  dd: 1500,  pt: 1500  },
-    50000:  { daily: 1000,  dd: 2000,  pt: 3000  },
-    100000: { daily: 2500,  dd: 3500,  pt: 6000  },
-    150000: { daily: 3000,  dd: 5000,  pt: 9000  },
-    200000: { daily: 4000,  dd: 6000,  pt: 12000 },
+  // Tradeify — EOD trailing, NO daily loss (Select plan)
+  tradeify: {
+    25000:  { daily: 0, dd: 1500, pt: 1500 },
+    50000:  { daily: 0, dd: 2500, pt: 2500 },
+    100000: { daily: 0, dd: 5000, pt: 5000 },
+    150000: { daily: 0, dd: 7500, pt: 7500 },
   },
+  // My Funded Futures — EOD trailing, NO daily loss during eval
   myfundedfutures: {
-    25000:  { daily: 500,   dd: 750,   pt: 1500  },
-    50000:  { daily: 1000,  dd: 1500,  pt: 3000  },
-    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
-    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+    25000:  { daily: 0, dd: 1000, pt: 1500 },
+    50000:  { daily: 0, dd: 2000, pt: 3000 },
+    100000: { daily: 0, dd: 3000, pt: 6000 },
+    150000: { daily: 0, dd: 4500, pt: 9000 },
   },
+  // Phidias PropFirm — EOD trailing, NO daily loss
+  phidias: {
+    25000:  { daily: 0, dd: 500,  pt: 1500 },
+    50000:  { daily: 0, dd: 2500, pt: 4000 },
+    100000: { daily: 0, dd: 5000, pt: 4500 },
+    150000: { daily: 0, dd: 7500, pt: 9000 },
+  },
+  // Bulenox — 50K PT $2,000
   bulenox: {
-    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
-    50000:  { daily: 1500,  dd: 2500,  pt: 3000  },
-    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
-    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
-    250000: { daily: 4000,  dd: 5500,  pt: 15000 },
+    25000:  { daily: 1000, dd: 1500, pt: 1500 },
+    50000:  { daily: 1500, dd: 2500, pt: 2000 },
+    100000: { daily: 2000, dd: 3000, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
+  // TradeDay — 50K PT $3,000
   tradeday: {
-    10000:  { daily: 400,   dd: 600,   pt: 1000  },
-    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
-    50000:  { daily: 1500,  dd: 2000,  pt: 3000  },
-    100000: { daily: 2500,  dd: 3500,  pt: 6000  },
+    25000:  { daily: 1000, dd: 1500, pt: 1500 },
+    50000:  { daily: 1500, dd: 2000, pt: 3000 },
+    100000: { daily: 2500, dd: 3500, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  alphafutures: {
-    25000:  { daily: 750,   dd: 1500,  pt: 1500  },
-    50000:  { daily: 1250,  dd: 2500,  pt: 3000  },
-    100000: { daily: 1500,  dd: 3000,  pt: 6000  },
-    150000: { daily: 2250,  dd: 4500,  pt: 9000  },
+  // Earn2Trade
+  earn2trade: {
+    25000:  { daily: 1050, dd: 1500, pt: 1500 },
+    50000:  { daily: 1000, dd: 2000, pt: 3000 },
+    100000: { daily: 2500, dd: 3500, pt: 6000 },
+    150000: { daily: 3000, dd: 5000, pt: 9000 },
+    200000: { daily: 4000, dd: 6000, pt: 12000 },
   },
+  // Take Profit Trader
+  takeprofittrader: {
+    25000:  { daily: 1000, dd: 1500, pt: 1500 },
+    50000:  { daily: 1200, dd: 2000, pt: 3000 },
+    100000: { daily: 2000, dd: 3000, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
+  },
+  // TickTick Trader
+  tickticktrader: {
+    25000:  { daily: 1000, dd: 1500, pt: 1500 },
+    50000:  { daily: 1200, dd: 2000, pt: 3000 },
+    100000: { daily: 2000, dd: 3000, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
+  },
+  // Lucid Trading — EOD trailing, NO daily loss
   lucidtrading: {
-    25000:  { daily: 750,   dd: 1500,  pt: 1500  },
-    50000:  { daily: 1250,  dd: 2500,  pt: 3000  },
-    100000: { daily: 1750,  dd: 3500,  pt: 6000  },
-    150000: { daily: 2500,  dd: 5000,  pt: 9000  },
+    50000:  { daily: 0, dd: 2500, pt: 3000 },
+    100000: { daily: 0, dd: 3500, pt: 6000 },
+    150000: { daily: 0, dd: 5000, pt: 9000 },
+  },
+  // FundedNext Futures
+  fundednext: {
+    50000:  { daily: 1200, dd: 2000, pt: 3000 },
+    100000: { daily: 2000, dd: 3000, pt: 6000 },
+    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    200000: { daily: 3500, dd: 5000, pt: 12000 },
   },
 };
 
 // Generic fallback by size
 const SIZE_DEFAULTS: Record<number, Preset> = {
-  10000:  { daily: 400,   dd: 500,   pt: 1000  },
-  25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
-  50000:  { daily: 1200,  dd: 2000,  pt: 3000  },
-  100000: { daily: 2000,  dd: 3000,  pt: 6000  },
-  150000: { daily: 3000,  dd: 4500,  pt: 9000  },
-  200000: { daily: 3500,  dd: 5000,  pt: 12000 },
-  250000: { daily: 4000,  dd: 5500,  pt: 15000 },
+  10000:  { daily: 400,  dd: 500,   pt: 1000  },
+  25000:  { daily: 1000, dd: 1500,  pt: 1500  },
+  50000:  { daily: 1200, dd: 2000,  pt: 3000  },
+  75000:  { daily: 1500, dd: 2750,  pt: 4250  },
+  100000: { daily: 2000, dd: 3000,  pt: 6000  },
+  150000: { daily: 3000, dd: 4500,  pt: 9000  },
+  200000: { daily: 3500, dd: 5000,  pt: 12000 },
+  250000: { daily: 4000, dd: 5500,  pt: 15000 },
+  300000: { daily: 5000, dd: 10000, pt: 20000 },
 };
 
 function normalizeFirm(name: string): string {
   const n = name.toLowerCase().replace(/[^a-z0-9]/g, "");
   if (n.includes("apex")) return "apex";
   if (n.includes("topstep")) return "topstep";
+  if (n.includes("tradeify")) return "tradeify";
   if (n.includes("earn2trade") || n.includes("earn2")) return "earn2trade";
   if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
+  if (n.includes("phidias")) return "phidias";
   if (n.includes("bulenox")) return "bulenox";
   if (n.includes("tradeday")) return "tradeday";
-  if (n.includes("alpha") && n.includes("future")) return "alphafutures";
-  if (n.includes("alphafuture")) return "alphafutures";
+  if (n.includes("takeprofit") || n.includes("tpt")) return "takeprofittrader";
+  if (n.includes("ticktick")) return "tickticktrader";
   if (n.includes("lucid")) return "lucidtrading";
+  if (n.includes("fundednext")) return "fundednext";
   return "";
 }
 
@@ -184,6 +226,7 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
       setDailyLoss(s.daily);
       setMaxDrawdown(s.dd);
       setProfitTarget(s.pt);
+      setDailyLossEnabled(s.daily > 0);
     }
   }, [propFirm, accountSize, isEdit]);
   const [dailyLossEnabled, setDailyLossEnabled] = useState(account?.daily_loss_enabled ?? true);

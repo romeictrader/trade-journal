@@ -84,7 +84,7 @@ export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: Si
           {showLabels && (
             <div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
-                One To One Journal
+                One To One
               </div>
               <div style={{ fontSize: 10, color: "#888" }}>Pro Edition</div>
             </div>

@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
-
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
@@ -52,13 +50,8 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "radial-gradient(ellipse at 50% 30%, #161616 0%, #0a0a0a 70%)", padding: "0 24px" }}>
 
-      {/* Logo */}
-      <div style={{ marginBottom: 20, textAlign: "center" }}>
-        <Image src="/logo.png" alt="OTO" width={80} height={80} style={{ objectFit: "contain" }} />
-      </div>
-
       {/* Heading */}
-      <h1 style={{ fontSize: 32, fontWeight: 700, color: "#fff", margin: "0 0 8px", textAlign: "center" }}>Get started</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 700, color: "#fff", margin: "0 0 8px", textAlign: "center" }}>Welcome To One To One Journal</h1>
       <p style={{ fontSize: 15, color: "#666", margin: "0 0 36px", textAlign: "center" }}>Sign-up or sign-in to your account now</p>
 
       <div style={{ width: "100%", maxWidth: 400 }}>

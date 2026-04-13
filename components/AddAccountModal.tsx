@@ -24,6 +24,8 @@ const inputStyle: React.CSSProperties = {
 };
 
 type Preset = { daily: number; dd: number; pt: number };
+type Plan = { key: string; label: string; sizes: Record<number, Preset> };
+type FirmConfig = { plans: Plan[] };
 
 const FIRM_LIST: { key: string; label: string }[] = [
   { key: "apex", label: "Apex Trader Funding" },
@@ -35,88 +37,182 @@ const FIRM_LIST: { key: string; label: string }[] = [
   { key: "tradeday", label: "TradeDay" },
   { key: "takeprofittrader", label: "Take Profit Trader" },
   { key: "tickticktrader", label: "TickTick Trader" },
-
   { key: "fundednext", label: "FundedNext" },
   { key: "lucidtrading", label: "Lucid Trading" },
   { key: "alphafutures", label: "Alpha Futures" },
 ];
 
-const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
+const FIRM_DATA: Record<string, FirmConfig> = {
   apex: {
-    25000:  { daily: 0, dd: 1000,  pt: 1500  },
-    50000:  { daily: 0, dd: 2500,  pt: 3000  },
-    75000:  { daily: 0, dd: 2750,  pt: 4250  },
-    100000: { daily: 0, dd: 3000,  pt: 6000  },
-    150000: { daily: 0, dd: 5000,  pt: 9000  },
-    250000: { daily: 0, dd: 7500,  pt: 12500 },
-    300000: { daily: 0, dd: 10000, pt: 20000 },
+    plans: [
+      { key: "eod", label: "EOD", sizes: {
+        25000:  { daily: 0, dd: 1000,  pt: 1500  },
+        50000:  { daily: 0, dd: 2500,  pt: 3000  },
+        75000:  { daily: 0, dd: 2750,  pt: 4250  },
+        100000: { daily: 0, dd: 3000,  pt: 6000  },
+        150000: { daily: 0, dd: 5000,  pt: 9000  },
+        250000: { daily: 0, dd: 7500,  pt: 12500 },
+        300000: { daily: 0, dd: 10000, pt: 20000 },
+      }},
+      { key: "intraday", label: "Intraday", sizes: {
+        25000:  { daily: 0, dd: 1000,  pt: 1500  },
+        50000:  { daily: 0, dd: 2500,  pt: 3000  },
+        75000:  { daily: 0, dd: 2750,  pt: 4250  },
+        100000: { daily: 0, dd: 3000,  pt: 6000  },
+        150000: { daily: 0, dd: 5000,  pt: 9000  },
+        250000: { daily: 0, dd: 7500,  pt: 12500 },
+        300000: { daily: 0, dd: 10000, pt: 20000 },
+      }},
+    ],
   },
   topstep: {
-    50000:  { daily: 1000, dd: 2000, pt: 3000 },
-    100000: { daily: 2000, dd: 3000, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "standard", label: "Standard", sizes: {
+        50000:  { daily: 1000, dd: 2000, pt: 3000 },
+        100000: { daily: 2000, dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
   tradeify: {
-    25000:  { daily: 0, dd: 1500, pt: 1500 },
-    50000:  { daily: 0, dd: 2500, pt: 2500 },
-    100000: { daily: 0, dd: 5000, pt: 5000 },
-    150000: { daily: 0, dd: 7500, pt: 7500 },
+    plans: [
+      { key: "select", label: "Select", sizes: {
+        25000:  { daily: 0, dd: 1500, pt: 1500 },
+        50000:  { daily: 0, dd: 2500, pt: 2500 },
+        100000: { daily: 0, dd: 5000, pt: 5000 },
+        150000: { daily: 0, dd: 7500, pt: 7500 },
+      }},
+      { key: "growth", label: "Growth", sizes: {
+        25000:  { daily: 600,  dd: 1500, pt: 1500 },
+        50000:  { daily: 1250, dd: 2500, pt: 2500 },
+        100000: { daily: 2500, dd: 5000, pt: 5000 },
+        150000: { daily: 3750, dd: 7500, pt: 7500 },
+      }},
+    ],
   },
   myfundedfutures: {
-    25000:  { daily: 0, dd: 1000, pt: 1500 },
-    50000:  { daily: 0, dd: 2000, pt: 3000 },
-    100000: { daily: 0, dd: 3000, pt: 6000 },
-    150000: { daily: 0, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "core", label: "Core", sizes: {
+        50000: { daily: 0, dd: 2000, pt: 3000 },
+      }},
+      { key: "rapid", label: "Rapid", sizes: {
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+      }},
+      { key: "pro", label: "Pro", sizes: {
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
   phidias: {
-    25000:  { daily: 0, dd: 500,  pt: 1500 },
-    50000:  { daily: 0, dd: 2500, pt: 4000 },
-    100000: { daily: 0, dd: 5000, pt: 4500 },
-    150000: { daily: 0, dd: 7500, pt: 9000 },
+    plans: [
+      { key: "static25k", label: "Static 25K", sizes: {
+        25000: { daily: 0, dd: 500, pt: 1500 },
+      }},
+      { key: "fundamental", label: "Fundamental", sizes: {
+        50000:  { daily: 0, dd: 2500, pt: 4000 },
+        100000: { daily: 0, dd: 5000, pt: 4500 },
+        150000: { daily: 0, dd: 7500, pt: 9000 },
+      }},
+      { key: "swing", label: "Swing", sizes: {
+        50000:  { daily: 0, dd: 2500, pt: 4000 },
+        100000: { daily: 0, dd: 5000, pt: 4500 },
+        150000: { daily: 0, dd: 7500, pt: 9000 },
+      }},
+    ],
   },
   bulenox: {
-    25000:  { daily: 1000, dd: 1500, pt: 1500 },
-    50000:  { daily: 1500, dd: 2500, pt: 2000 },
-    100000: { daily: 2000, dd: 3000, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "default", label: "Standard", sizes: {
+        25000:  { daily: 1000, dd: 1500, pt: 1500 },
+        50000:  { daily: 1500, dd: 2500, pt: 2000 },
+        100000: { daily: 2000, dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
   tradeday: {
-    25000:  { daily: 1000, dd: 1500, pt: 1500 },
-    50000:  { daily: 1500, dd: 2000, pt: 3000 },
-    100000: { daily: 2500, dd: 3500, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "default", label: "Standard", sizes: {
+        25000:  { daily: 1000, dd: 1500, pt: 1500 },
+        50000:  { daily: 1500, dd: 2000, pt: 3000 },
+        100000: { daily: 2500, dd: 3500, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
   takeprofittrader: {
-    25000:  { daily: 1000, dd: 1500, pt: 1500 },
-    50000:  { daily: 1200, dd: 2000, pt: 3000 },
-    100000: { daily: 2000, dd: 3000, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "default", label: "Standard", sizes: {
+        25000:  { daily: 1000, dd: 1500, pt: 1500 },
+        50000:  { daily: 1200, dd: 2000, pt: 3000 },
+        100000: { daily: 2000, dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
   tickticktrader: {
-    25000:  { daily: 1000, dd: 1500, pt: 1500 },
-    50000:  { daily: 1200, dd: 2000, pt: 3000 },
-    100000: { daily: 2000, dd: 3000, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "default", label: "Standard", sizes: {
+        25000:  { daily: 1000, dd: 1500, pt: 1500 },
+        50000:  { daily: 1200, dd: 2000, pt: 3000 },
+        100000: { daily: 2000, dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
-
   fundednext: {
-    50000:  { daily: 1200, dd: 2000, pt: 3000 },
-    100000: { daily: 2000, dd: 3000, pt: 6000 },
-    150000: { daily: 3000, dd: 4500, pt: 9000 },
-    200000: { daily: 3500, dd: 5000, pt: 12000 },
+    plans: [
+      { key: "default", label: "Standard", sizes: {
+        50000:  { daily: 1200, dd: 2000, pt: 3000 },
+        100000: { daily: 2000, dd: 3000, pt: 6000 },
+        150000: { daily: 3000, dd: 4500, pt: 9000 },
+        200000: { daily: 3500, dd: 5000, pt: 12000 },
+      }},
+    ],
   },
-  // Lucid Trading — LucidFlex (EOD trailing, NO daily loss)
   lucidtrading: {
-    25000:  { daily: 0, dd: 1000, pt: 1500 },
-    50000:  { daily: 0, dd: 2000, pt: 3000 },
-    100000: { daily: 0, dd: 3000, pt: 6000 },
-    150000: { daily: 0, dd: 4500, pt: 9000 },
+    plans: [
+      { key: "flex", label: "LucidFlex", sizes: {
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+      }},
+      { key: "pro", label: "LucidPro", sizes: {
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+      }},
+      { key: "direct", label: "LucidDirect", sizes: {
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
+      }},
+    ],
   },
-  // Alpha Futures — Standard plan (4% EOD trailing, NO daily loss during eval)
   alphafutures: {
-    50000:  { daily: 0, dd: 2000, pt: 3000 },
-    100000: { daily: 0, dd: 4000, pt: 6000 },
-    150000: { daily: 0, dd: 6000, pt: 9000 },
+    plans: [
+      { key: "standard", label: "Standard", sizes: {
+        50000:  { daily: 0, dd: 2000,  pt: 3000  },
+        100000: { daily: 0, dd: 4000,  pt: 6000  },
+        150000: { daily: 0, dd: 6000,  pt: 9000  },
+      }},
+      { key: "advanced", label: "Advanced", sizes: {
+        50000:  { daily: 0, dd: 1750,  pt: 4000  },
+        100000: { daily: 0, dd: 3500,  pt: 8000  },
+        150000: { daily: 0, dd: 5250,  pt: 12000 },
+      }},
+      { key: "zero", label: "Zero", sizes: {
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 4000, pt: 6000 },
+      }},
+    ],
   },
 };
 
@@ -154,22 +250,42 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
   const initialFirmLabel = account ? (FIRM_LIST.find(f => f.key === matchFirmKey(account.prop_firm))?.label ?? "") : "";
 
   const [propFirm, setPropFirm] = useState(initialFirmLabel);
+  const [planType, setPlanType] = useState("");
   const [accountName, setAccountName] = useState(account?.account_name ?? "");
   const [accountSize, setAccountSize] = useState(account?.account_size ?? 0);
   const [color, setColor] = useState(account?.color ?? "#c9a84c");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Derived values
   const firmKey = FIRM_LIST.find(f => f.label === propFirm)?.key ?? "";
-  const availableSizes = firmKey ? Object.keys(FIRM_PRESETS[firmKey]).map(Number).sort((a, b) => a - b) : [];
-  const preset = firmKey ? FIRM_PRESETS[firmKey]?.[accountSize] ?? null : null;
+  const firmConfig = firmKey ? FIRM_DATA[firmKey] : null;
+  const plans = firmConfig?.plans ?? [];
+  const selectedPlan = plans.find(p => p.key === planType) ?? null;
+  const availableSizes = selectedPlan ? Object.keys(selectedPlan.sizes).map(Number).sort((a, b) => a - b) : [];
+  const preset = selectedPlan?.sizes[accountSize] ?? null;
 
-  // Auto-select first available size when firm changes
+  // Auto-select plan when firm changes
   useEffect(() => {
-    if (firmKey && availableSizes.length > 0 && !availableSizes.includes(accountSize)) {
-      setAccountSize(availableSizes[0]);
+    if (plans.length === 1) {
+      setPlanType(plans[0].key);
+    } else if (plans.length > 1) {
+      setPlanType(plans[0].key);
+    } else {
+      setPlanType("");
     }
+    setAccountSize(0);
   }, [firmKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-select first size when plan changes
+  useEffect(() => {
+    if (selectedPlan) {
+      const sizes = Object.keys(selectedPlan.sizes).map(Number).sort((a, b) => a - b);
+      if (sizes.length > 0 && !sizes.includes(accountSize)) {
+        setAccountSize(sizes[0]);
+      }
+    }
+  }, [planType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -179,7 +295,7 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
 
   async function handleSave() {
     if (!propFirm || !accountName || !preset) {
-      setError("Please select a prop firm, account size, and enter account name");
+      setError("Please select a prop firm, plan, size, and enter account name");
       return;
     }
     setSaving(true);
@@ -208,6 +324,18 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
     if (err) { setError(err.message); setSaving(false); }
     else { onSaved(); }
   }
+
+  const btnStyle = (active: boolean): React.CSSProperties => ({
+    padding: "8px 14px",
+    borderRadius: 6,
+    border: `1px solid ${active ? "#c9a84c" : "#333"}`,
+    background: active ? "#c9a84c22" : "transparent",
+    color: active ? "#c9a84c" : "#888",
+    fontSize: 12,
+    cursor: "pointer",
+    fontWeight: 600,
+    transition: "all 0.15s",
+  });
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
@@ -255,6 +383,19 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
           </select>
         </FieldRow>
 
+        {/* Plan Type — only show if firm has multiple plans */}
+        {plans.length > 1 && (
+          <FieldRow label="Plan Type">
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {plans.map((p) => (
+                <button key={p.key} type="button" onClick={() => setPlanType(p.key)} style={btnStyle(planType === p.key)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </FieldRow>
+        )}
+
         {/* Account Name */}
         <FieldRow label="Account Name">
           <input
@@ -265,33 +406,15 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
           />
         </FieldRow>
 
-        {/* Account Size — only show sizes available for selected firm */}
-        {firmKey && (
+        {/* Account Size — only show sizes available for selected plan */}
+        {selectedPlan && (
           <FieldRow label="Account Size">
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {availableSizes.map((s) => {
-                const active = accountSize === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setAccountSize(s)}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: 6,
-                      border: `1px solid ${active ? "#c9a84c" : "#333"}`,
-                      background: active ? "#c9a84c22" : "transparent",
-                      color: active ? "#c9a84c" : "#888",
-                      fontSize: 12,
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    ${(s / 1000).toFixed(0)}K
-                  </button>
-                );
-              })}
+              {availableSizes.map((s) => (
+                <button key={s} type="button" onClick={() => setAccountSize(s)} style={btnStyle(accountSize === s)}>
+                  ${(s / 1000).toFixed(0)}K
+                </button>
+              ))}
             </div>
           </FieldRow>
         )}

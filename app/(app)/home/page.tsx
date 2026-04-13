@@ -179,7 +179,7 @@ export default function DashboardPage() {
           {showEditMenu && (
             <>
               <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setShowEditMenu(false)} />
-              <div style={{ position: "absolute", top: "110%", right: 0, background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, minWidth: 200, zIndex: 50, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "110%", ...(isMobile ? { left: 0 } : { right: 0 }), background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, minWidth: 200, zIndex: 50, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", overflow: "hidden" }}>
                 <div style={{ padding: "10px 14px 6px", fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Select Account</div>
                 {accountStats.length === 0 && (
                   <div style={{ padding: "10px 14px", fontSize: 13, color: "#555" }}>No accounts yet</div>

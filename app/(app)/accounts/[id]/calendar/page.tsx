@@ -109,86 +109,88 @@ export default function AccountCalendarPage() {
         </div>
 
         {/* Day headers */}
-        <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
-          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-            {DAYS.map(d => (
-              <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#555", fontWeight: 600, padding: "6px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>{d}</div>
-            ))}
-          </div>
-          <div style={{ width: 90 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr) 90px", gap: 2, marginBottom: 2 }}>
+          {DAYS.map(d => (
+            <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#555", fontWeight: 600, padding: "6px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>{d}</div>
+          ))}
+          <div />
         </div>
 
-        {/* Calendar grid + week summary side column */}
-        <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 2 }}>
-          {/* Day cells */}
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, flex: 1, minHeight: 0 }}>
-                {week.map((day, di) => {
-                  if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;
-                  const ds = dateStr(year, month, day);
-                  const dayTrades = byDate[ds];
-                  const dayPnl = dayTrades?.reduce((s, t) => s + t.pnl, 0);
-                  const isToday = ds === todayStr;
-                  const isSelected = ds === selectedDate;
-                  const hasTrades = dayPnl !== undefined;
+        {/* Unified calendar grid — day cells + week summary in one grid so rows are always equal height */}
+        <div style={{
+          flex: 1,
+          minHeight: 0,
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr) 90px",
+          gridTemplateRows: `repeat(${weeks.length}, 1fr)`,
+          gap: 2,
+        }}>
+          {weeks.flatMap((week, wi) => {
+            const weekTrades = week.flatMap(day => {
+              if (!day) return [] as Trade[];
+              const ds = dateStr(year, month, day);
+              return byDate[ds] ?? [];
+            });
+            const weekPnl = weekTrades.reduce((s, t) => s + t.pnl, 0);
 
-                  return (
-                    <div
-                      key={ds}
-                      onClick={() => setSelectedDate(ds === selectedDate ? null : ds)}
-                      style={{
-                        background: hasTrades ? getCellBg(dayPnl!) : "#111",
-                        border: isSelected || isToday ? "1px solid #4fc3f7" : "1px solid #1e1e1e",
-                        borderRadius: 4,
-                        padding: "8px 10px",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        transition: "filter 0.1s",
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
-                    >
-                      <div style={{ fontSize: 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: 6 }}>{day}</div>
-                      {hasTrades && (
-                        <>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
-                            {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
-                          </div>
-                          <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* Week summary column — separate flex column so heights always match */}
-          <div style={{ width: 90, minHeight: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-            {weeks.map((week, wi) => {
-              const weekTrades: Trade[] = [];
-              for (const day of week) {
-                if (!day) continue;
+            return [
+              ...week.map((day, di) => {
+                if (!day) return <div key={`e-${wi}-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;
                 const ds = dateStr(year, month, day);
-                if (byDate[ds]) weekTrades.push(...byDate[ds]);
-              }
-              const weekPnl = weekTrades.reduce((s, t) => s + t.pnl, 0);
-              return (
-                <div key={wi} style={{ flex: 1, minHeight: 0, overflow: "hidden", background: weekTrades.length === 0 ? "#111" : getCellBg(weekPnl), border: "1px solid #1a1a1a", borderRadius: 4, padding: "6px 8px", display: "flex", flexDirection: "column" }}>
-                  <div style={{ fontSize: 9, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Week {wi + 1}</div>
-                  <div style={{ marginTop: "auto" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-                      {weekTrades.length === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
-                    </div>
-                    <div style={{ fontSize: 9, color: "#555", marginTop: 1 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
+                const dayTrades = byDate[ds];
+                const dayPnl = dayTrades?.reduce((s, t) => s + t.pnl, 0);
+                const isToday = ds === todayStr;
+                const isSelected = ds === selectedDate;
+                const hasTrades = dayPnl !== undefined;
+                return (
+                  <div
+                    key={ds}
+                    onClick={() => setSelectedDate(ds === selectedDate ? null : ds)}
+                    style={{
+                      background: hasTrades ? getCellBg(dayPnl!) : "#111",
+                      border: isSelected || isToday ? "1px solid #4fc3f7" : "1px solid #1e1e1e",
+                      borderRadius: 4,
+                      padding: "8px 10px",
+                      cursor: "pointer",
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "filter 0.1s",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.2)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1)"; }}
+                  >
+                    <div style={{ fontSize: 12, color: isToday ? "#4fc3f7" : "#888", fontWeight: isToday ? 700 : 400, marginBottom: 6 }}>{day}</div>
+                    {hasTrades && (
+                      <>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: dayPnl! > 0 ? "#4caf50" : dayPnl! < 0 ? "#ef5350" : "#666", marginTop: "auto" }}>
+                          {dayPnl! >= 0 ? `$${dayPnl!.toFixed(2)}` : `-$${Math.abs(dayPnl!).toFixed(2)}`}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{dayTrades.length} trade{dayTrades.length !== 1 ? "s" : ""}</div>
+                      </>
+                    )}
                   </div>
+                );
+              }),
+              <div key={`wk-${wi}`} style={{
+                overflow: "hidden",
+                background: weekTrades.length === 0 ? "#111" : getCellBg(weekPnl),
+                border: "1px solid #1a1a1a",
+                borderRadius: 4,
+                padding: "6px 8px",
+                display: "flex",
+                flexDirection: "column",
+              }}>
+                <div style={{ fontSize: 9, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Week {wi + 1}</div>
+                <div style={{ marginTop: "auto" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+                    {weekTrades.length === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(2)}` : `-$${Math.abs(weekPnl).toFixed(2)}`}
+                  </div>
+                  <div style={{ fontSize: 9, color: "#555", marginTop: 1 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
                 </div>
-              );
-            })}
-          </div>
+              </div>,
+            ];
+          })}
         </div>
       </div>
 

@@ -59,10 +59,6 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a0a", padding: "0 24px" }}>
-      {/* Logo */}
-      <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <img src="/logo.png" alt="Logo" style={{ width: 100, height: 100, objectFit: "contain" }} />
-      </div>
 
       {/* Heading */}
       <h1 style={{ fontSize: 32, fontWeight: 700, color: "#fff", margin: "0 0 8px", textAlign: "center" }}>Get started</h1>

@@ -37,6 +37,8 @@ const FIRM_LIST: { key: string; label: string }[] = [
   { key: "tickticktrader", label: "TickTick Trader" },
 
   { key: "fundednext", label: "FundedNext" },
+  { key: "lucidtrading", label: "Lucid Trading" },
+  { key: "alphafutures", label: "Alpha Futures" },
 ];
 
 const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
@@ -102,6 +104,19 @@ const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
     200000: { daily: 3500, dd: 5000, pt: 12000 },
+  },
+  // Lucid Trading — LucidFlex (EOD trailing, NO daily loss)
+  lucidtrading: {
+    25000:  { daily: 0, dd: 1000, pt: 1500 },
+    50000:  { daily: 0, dd: 2000, pt: 3000 },
+    100000: { daily: 0, dd: 3000, pt: 6000 },
+    150000: { daily: 0, dd: 4500, pt: 9000 },
+  },
+  // Alpha Futures — Standard plan (4% EOD trailing, NO daily loss during eval)
+  alphafutures: {
+    50000:  { daily: 0, dd: 2000, pt: 3000 },
+    100000: { daily: 0, dd: 4000, pt: 6000 },
+    150000: { daily: 0, dd: 6000, pt: 9000 },
   },
 };
 

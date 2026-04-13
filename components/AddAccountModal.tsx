@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Account } from "@/lib/types";
+import { useFirmData } from "@/lib/useFirmData";
 
 interface AddAccountModalProps {
   onClose: () => void;
@@ -23,227 +24,13 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-type Preset = { daily: number; dd: number; pt: number };
-type Plan = { key: string; label: string; sizes: Record<number, Preset> };
-type FirmConfig = { plans: Plan[] };
 
-const FIRM_LIST: { key: string; label: string }[] = [
-  { key: "apex", label: "Apex Trader Funding" },
-  { key: "topstep", label: "Topstep" },
-  { key: "tradeify", label: "Tradeify" },
-  { key: "myfundedfutures", label: "My Funded Futures" },
-  { key: "phidias", label: "Phidias" },
-  { key: "bulenox", label: "Bulenox" },
-  { key: "tradeday", label: "TradeDay" },
-  { key: "takeprofittrader", label: "Take Profit Trader" },
-  { key: "tickticktrader", label: "TickTick Trader" },
-  { key: "fundednext", label: "FundedNext" },
-  { key: "lucidtrading", label: "Lucid Trading" },
-  { key: "alphafutures", label: "Alpha Futures" },
-];
-
-const FIRM_DATA: Record<string, FirmConfig> = {
-  apex: {
-    plans: [
-      { key: "eod", label: "EOD", sizes: {
-        25000:  { daily: 0, dd: 1500,  pt: 1500  },
-        50000:  { daily: 0, dd: 2500,  pt: 3000  },
-        75000:  { daily: 0, dd: 2750,  pt: 4250  },
-        100000: { daily: 0, dd: 3000,  pt: 6000  },
-        150000: { daily: 0, dd: 5000,  pt: 9000  },
-        250000: { daily: 0, dd: 6500,  pt: 12500 },
-        300000: { daily: 0, dd: 7500,  pt: 20000 },
-      }},
-      { key: "intraday", label: "Intraday", sizes: {
-        25000:  { daily: 0, dd: 1500,  pt: 1500  },
-        50000:  { daily: 0, dd: 2500,  pt: 3000  },
-        75000:  { daily: 0, dd: 2750,  pt: 4250  },
-        100000: { daily: 0, dd: 3000,  pt: 6000  },
-        150000: { daily: 0, dd: 5000,  pt: 9000  },
-        250000: { daily: 0, dd: 6500,  pt: 12500 },
-        300000: { daily: 0, dd: 7500,  pt: 20000 },
-      }},
-    ],
-  },
-  topstep: {
-    plans: [
-      { key: "standard", label: "Standard", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-    ],
-  },
-  tradeify: {
-    plans: [
-      { key: "select", label: "Select", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-      { key: "growth", label: "Growth", sizes: {
-        25000:  { daily: 600,  dd: 1000, pt: 1500 },
-        50000:  { daily: 1250, dd: 2000, pt: 3000 },
-        100000: { daily: 2500, dd: 3500, pt: 6000 },
-        150000: { daily: 3750, dd: 5000, pt: 9000 },
-      }},
-    ],
-  },
-  myfundedfutures: {
-    plans: [
-      { key: "core", label: "Core", sizes: {
-        50000: { daily: 0, dd: 2000, pt: 3000 },
-      }},
-      { key: "rapid", label: "Rapid", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-      { key: "pro", label: "Pro", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-    ],
-  },
-  phidias: {
-    plans: [
-      { key: "static25k", label: "Static 25K", sizes: {
-        25000: { daily: 0, dd: 500, pt: 1500 },
-      }},
-      { key: "fundamental", label: "Fundamental", sizes: {
-        50000:  { daily: 0, dd: 2500, pt: 4000 },
-        100000: { daily: 0, dd: 5000, pt: 4500 },
-        150000: { daily: 0, dd: 7500, pt: 9000 },
-      }},
-      { key: "swing", label: "Swing", sizes: {
-        50000:  { daily: 0, dd: 2500, pt: 4000 },
-        100000: { daily: 0, dd: 5000, pt: 4500 },
-        150000: { daily: 0, dd: 7500, pt: 9000 },
-      }},
-    ],
-  },
-  bulenox: {
-    plans: [
-      { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 500,  dd: 1500, pt: 1500 },
-        50000:  { daily: 1100, dd: 2500, pt: 2000 },
-        100000: { daily: 2200, dd: 3000, pt: 6000 },
-        150000: { daily: 3300, dd: 4500, pt: 9000 },
-      }},
-    ],
-  },
-  tradeday: {
-    plans: [
-      { key: "intraday", label: "Intraday", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4000, pt: 9000 },
-      }},
-      { key: "eod", label: "EOD", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4000, pt: 9000 },
-      }},
-      { key: "static", label: "Static", sizes: {
-        50000:  { daily: 0, dd: 500,  pt: 1500 },
-        100000: { daily: 0, dd: 750,  pt: 2500 },
-        150000: { daily: 0, dd: 1000, pt: 3750 },
-      }},
-    ],
-  },
-  takeprofittrader: {
-    plans: [
-      { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 0, dd: 1500, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-    ],
-  },
-  tickticktrader: {
-    plans: [
-      { key: "default", label: "Standard", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1500 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-    ],
-  },
-  fundednext: {
-    plans: [
-      { key: "default", label: "Standard", sizes: {
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-        200000: { daily: 0, dd: 5000, pt: 12000 },
-      }},
-    ],
-  },
-  lucidtrading: {
-    plans: [
-      { key: "flex", label: "LucidFlex", sizes: {
-        25000:  { daily: 0, dd: 1000, pt: 1250 },
-        50000:  { daily: 0, dd: 2000, pt: 3000 },
-        100000: { daily: 0, dd: 3000, pt: 6000 },
-        150000: { daily: 0, dd: 4500, pt: 9000 },
-      }},
-      { key: "pro", label: "LucidPro", sizes: {
-        25000:  { daily: 0,    dd: 1000, pt: 1250 },
-        50000:  { daily: 1200, dd: 2000, pt: 3000 },
-        100000: { daily: 1800, dd: 3000, pt: 6000 },
-        150000: { daily: 2700, dd: 4500, pt: 9000 },
-      }},
-      { key: "direct", label: "LucidDirect", sizes: {
-        25000:  { daily: 0,    dd: 1000, pt: 1250 },
-        50000:  { daily: 1200, dd: 2000, pt: 3000 },
-        100000: { daily: 0,    dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 5000, pt: 9000 },
-      }},
-    ],
-  },
-  alphafutures: {
-    plans: [
-      { key: "standard", label: "Standard", sizes: {
-        50000:  { daily: 0, dd: 2000,  pt: 3000  },
-        100000: { daily: 0, dd: 4000,  pt: 6000  },
-        150000: { daily: 0, dd: 6000,  pt: 9000  },
-      }},
-      { key: "advanced", label: "Advanced", sizes: {
-        50000:  { daily: 0, dd: 1750,  pt: 4000  },
-        100000: { daily: 0, dd: 3500,  pt: 8000  },
-        150000: { daily: 0, dd: 5250,  pt: 12000 },
-      }},
-      { key: "zero", label: "Zero", sizes: {
-        50000:  { daily: 1000, dd: 2000, pt: 3000 },
-        100000: { daily: 2000, dd: 4000, pt: 6000 },
-      }},
-    ],
-  },
-};
 
 const PRESET_COLORS = [
   "#c9a84c", "#3b82f6", "#22c55e", "#a855f7",
   "#ef4444", "#f97316", "#ec4899", "#06b6d4",
 ];
 
-function matchFirmKey(name: string): string {
-  if (!name) return "";
-  const exact = FIRM_LIST.find(f => f.label === name);
-  if (exact) return exact.key;
-  const n = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  for (const f of FIRM_LIST) {
-    if (n.includes(f.key)) return f.key;
-  }
-  if (n.includes("apex")) return "apex";
-  if (n.includes("topstep")) return "topstep";
-  if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
-  return "";
-}
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -257,7 +44,9 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
 }
 
 export default function AddAccountModal({ onClose, onSaved, account }: AddAccountModalProps) {
-  const initialFirmLabel = account ? (FIRM_LIST.find(f => f.key === matchFirmKey(account.prop_firm))?.label ?? "") : "";
+  const { firmList, firmData, loading: firmsLoading } = useFirmData();
+
+  const initialFirmLabel = account ? (firmList.find(f => f.label === account.prop_firm || f.key === account.prop_firm.toLowerCase().replace(/[^a-z0-9]/g, ""))?.label ?? "") : "";
 
   const [propFirm, setPropFirm] = useState(initialFirmLabel);
   const [planType, setPlanType] = useState("");
@@ -268,12 +57,12 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
   const [error, setError] = useState("");
 
   // Derived values
-  const firmKey = FIRM_LIST.find(f => f.label === propFirm)?.key ?? "";
-  const firmConfig = firmKey ? FIRM_DATA[firmKey] : null;
+  const firmKey = firmList.find(f => f.label === propFirm)?.key ?? "";
+  const firmConfig = firmKey ? firmData[firmKey] : null;
   const plans = firmConfig?.plans ?? [];
   const selectedPlan = plans.find(p => p.key === planType) ?? null;
   const availableSizes = selectedPlan ? Object.keys(selectedPlan.sizes).map(Number).sort((a, b) => a - b) : [];
-  const preset = selectedPlan?.sizes[accountSize] ?? null;
+  const preset = selectedPlan?.sizes[String(accountSize)] ?? null;
 
   // Auto-select plan when firm changes
   useEffect(() => {
@@ -385,7 +174,7 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
             }}
           >
             <option value="" style={{ background: "#111", color: "#888" }}>Select prop firm...</option>
-            {FIRM_LIST.map((f) => (
+            {firmList.map((f) => (
               <option key={f.key} value={f.label} style={{ background: "#111", color: "#fff" }}>
                 {f.label}
               </option>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Save, Download, Trash2 } from "lucide-react";
+import { Save, Download, Trash2, Plus, ChevronDown, ChevronRight, X } from "lucide-react";
+import { useFirmData, Firm, Plan, Preset } from "@/lib/useFirmData";
 
 interface JournalSettings {
   theme: string;
@@ -149,6 +150,236 @@ function SegmentedControl({
           {opt}
         </button>
       ))}
+    </div>
+  );
+}
+
+const COMMON_SIZES = [10000, 25000, 50000, 75000, 100000, 150000, 200000, 250000, 300000];
+
+const smallInput: React.CSSProperties = {
+  background: "#0a0a0a", border: "1px solid #222", borderRadius: 6,
+  padding: "6px 8px", color: "#fff", fontSize: 12, outline: "none",
+  width: 80, boxSizing: "border-box", textAlign: "right" as const,
+};
+
+function PropFirmRulesSection() {
+  const { firms, saveFirms, loading } = useFirmData();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
+  const [newFirmName, setNewFirmName] = useState("");
+  const [addingPlanFor, setAddingPlanFor] = useState<string | null>(null);
+  const [newPlanName, setNewPlanName] = useState("");
+  const [addingSizeFor, setAddingSizeFor] = useState<string | null>(null);
+  const [newSizeVal, setNewSizeVal] = useState(50000);
+
+  if (loading) return <Section title="Prop Firm Rules"><div style={{ color: "#555", fontSize: 13 }}>Loading...</div></Section>;
+
+  function toggleFirm(key: string) {
+    setExpanded(p => ({ ...p, [key]: !p[key] }));
+  }
+  function togglePlan(fk: string, pk: string) {
+    const id = `${fk}:${pk}`;
+    setExpandedPlans(p => ({ ...p, [id]: !p[id] }));
+  }
+
+  function addFirm() {
+    if (!newFirmName.trim()) return;
+    const key = newFirmName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (firms.some(f => f.key === key)) return;
+    const updated = [...firms, { key, label: newFirmName.trim(), plans: [] }];
+    saveFirms(updated);
+    setNewFirmName("");
+    setExpanded(p => ({ ...p, [key]: true }));
+  }
+
+  function deleteFirm(key: string) {
+    if (!confirm("Delete this firm and all its plans?")) return;
+    saveFirms(firms.filter(f => f.key !== key));
+  }
+
+  function addPlan(firmKey: string) {
+    if (!newPlanName.trim()) return;
+    const planKey = newPlanName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const updated = firms.map(f => {
+      if (f.key !== firmKey) return f;
+      if (f.plans.some(p => p.key === planKey)) return f;
+      return { ...f, plans: [...f.plans, { key: planKey, label: newPlanName.trim(), sizes: {} }] };
+    });
+    saveFirms(updated);
+    setNewPlanName("");
+    setAddingPlanFor(null);
+    setExpandedPlans(p => ({ ...p, [`${firmKey}:${planKey}`]: true }));
+  }
+
+  function deletePlan(firmKey: string, planKey: string) {
+    if (!confirm("Delete this plan?")) return;
+    saveFirms(firms.map(f => f.key !== firmKey ? f : { ...f, plans: f.plans.filter(p => p.key !== planKey) }));
+  }
+
+  function addSize(firmKey: string, planKey: string) {
+    const sizeStr = String(newSizeVal);
+    const updated = firms.map(f => {
+      if (f.key !== firmKey) return f;
+      return { ...f, plans: f.plans.map(p => {
+        if (p.key !== planKey) return p;
+        if (p.sizes[sizeStr]) return p;
+        return { ...p, sizes: { ...p.sizes, [sizeStr]: { daily: 0, dd: 2000, pt: 3000 } } };
+      })};
+    });
+    saveFirms(updated);
+    setAddingSizeFor(null);
+  }
+
+  function deleteSize(firmKey: string, planKey: string, size: string) {
+    saveFirms(firms.map(f => {
+      if (f.key !== firmKey) return f;
+      return { ...f, plans: f.plans.map(p => {
+        if (p.key !== planKey) return p;
+        const { [size]: _, ...rest } = p.sizes;
+        return { ...p, sizes: rest };
+      })};
+    }));
+  }
+
+  function updatePreset(firmKey: string, planKey: string, size: string, field: keyof Preset, value: number) {
+    saveFirms(firms.map(f => {
+      if (f.key !== firmKey) return f;
+      return { ...f, plans: f.plans.map(p => {
+        if (p.key !== planKey) return p;
+        return { ...p, sizes: { ...p.sizes, [size]: { ...p.sizes[size], [field]: value } } };
+      })};
+    }));
+  }
+
+  return (
+    <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 28, marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <h3 style={{ margin: 0, fontSize: 14, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Prop Firm Rules
+        </h3>
+        <span style={{ fontSize: 11, color: "#444" }}>Auto-saves</span>
+      </div>
+
+      {firms.map(firm => {
+        const isOpen = expanded[firm.key];
+        return (
+          <div key={firm.key} style={{ marginBottom: 8, border: "1px solid #1a1a1a", borderRadius: 8, overflow: "hidden" }}>
+            {/* Firm header */}
+            <div
+              onClick={() => toggleFirm(firm.key)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", cursor: "pointer", background: "#0a0a0a" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {isOpen ? <ChevronDown size={14} color="#555" /> : <ChevronRight size={14} color="#555" />}
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#ccc" }}>{firm.label}</span>
+                <span style={{ fontSize: 11, color: "#444" }}>{firm.plans.length} plan{firm.plans.length !== 1 ? "s" : ""}</span>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); deleteFirm(firm.key); }} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 4 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+
+            {isOpen && (
+              <div style={{ padding: "8px 14px 14px" }}>
+                {firm.plans.map(plan => {
+                  const planId = `${firm.key}:${plan.key}`;
+                  const planOpen = expandedPlans[planId] !== false;
+                  const sizes = Object.keys(plan.sizes).sort((a, b) => Number(a) - Number(b));
+                  return (
+                    <div key={plan.key} style={{ marginBottom: 8, border: "1px solid #1a1a1a", borderRadius: 6 }}>
+                      {/* Plan header */}
+                      <div
+                        onClick={() => togglePlan(firm.key, plan.key)}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", cursor: "pointer", background: "#111" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {planOpen ? <ChevronDown size={12} color="#555" /> : <ChevronRight size={12} color="#555" />}
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#c9a84c" }}>{plan.label}</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); deletePlan(firm.key, plan.key); }} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                          <X size={12} />
+                        </button>
+                      </div>
+
+                      {planOpen && (
+                        <div style={{ padding: "6px 12px 12px" }}>
+                          {/* Column headers */}
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 80px 80px 80px 28px", gap: 6, marginBottom: 4 }}>
+                            <span style={{ fontSize: 10, color: "#444", fontWeight: 600 }}>SIZE</span>
+                            <span style={{ fontSize: 10, color: "#444", fontWeight: 600, textAlign: "right" }}>DLL</span>
+                            <span style={{ fontSize: 10, color: "#444", fontWeight: 600, textAlign: "right" }}>MAX DD</span>
+                            <span style={{ fontSize: 10, color: "#444", fontWeight: 600, textAlign: "right" }}>PT</span>
+                            <span />
+                          </div>
+
+                          {sizes.map(size => {
+                            const p = plan.sizes[size];
+                            return (
+                              <div key={size} style={{ display: "grid", gridTemplateColumns: "70px 80px 80px 80px 28px", gap: 6, marginBottom: 4, alignItems: "center" }}>
+                                <span style={{ fontSize: 12, color: "#888", fontWeight: 600 }}>${(Number(size) / 1000).toFixed(0)}K</span>
+                                <input type="number" value={p.daily} onChange={e => updatePreset(firm.key, plan.key, size, "daily", Number(e.target.value) || 0)} style={smallInput} />
+                                <input type="number" value={p.dd} onChange={e => updatePreset(firm.key, plan.key, size, "dd", Number(e.target.value) || 0)} style={smallInput} />
+                                <input type="number" value={p.pt} onChange={e => updatePreset(firm.key, plan.key, size, "pt", Number(e.target.value) || 0)} style={smallInput} />
+                                <button onClick={() => deleteSize(firm.key, plan.key, size)} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                                  <X size={11} />
+                                </button>
+                              </div>
+                            );
+                          })}
+
+                          {/* Add size */}
+                          {addingSizeFor === planId ? (
+                            <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
+                              <select value={newSizeVal} onChange={e => setNewSizeVal(Number(e.target.value))} style={{ ...smallInput, width: 100 }}>
+                                {COMMON_SIZES.filter(s => !plan.sizes[String(s)]).map(s => (
+                                  <option key={s} value={s}>${(s / 1000).toFixed(0)}K</option>
+                                ))}
+                              </select>
+                              <button onClick={() => addSize(firm.key, plan.key)} style={{ background: "#c9a84c", border: "none", borderRadius: 4, color: "#000", fontSize: 11, fontWeight: 700, padding: "4px 10px", cursor: "pointer" }}>Add</button>
+                              <button onClick={() => setAddingSizeFor(null)} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 11 }}>Cancel</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => { setAddingSizeFor(planId); setNewSizeVal(COMMON_SIZES.find(s => !plan.sizes[String(s)]) ?? 50000); }} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", fontSize: 11, padding: "4px 0", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                              <Plus size={10} /> Add Size
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Add plan */}
+                {addingPlanFor === firm.key ? (
+                  <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
+                    <input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="Plan name..." onKeyDown={e => e.key === "Enter" && addPlan(firm.key)} style={{ ...smallInput, width: 140, textAlign: "left" as const }} autoFocus />
+                    <button onClick={() => addPlan(firm.key)} style={{ background: "#c9a84c", border: "none", borderRadius: 4, color: "#000", fontSize: 11, fontWeight: 700, padding: "4px 10px", cursor: "pointer" }}>Add</button>
+                    <button onClick={() => { setAddingPlanFor(null); setNewPlanName(""); }} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 11 }}>Cancel</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setAddingPlanFor(firm.key); setNewPlanName(""); }} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", fontSize: 11, padding: "4px 0", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Plus size={10} /> Add Plan
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Add firm */}
+      <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center" }}>
+        <input
+          value={newFirmName}
+          onChange={e => setNewFirmName(e.target.value)}
+          placeholder="New firm name..."
+          onKeyDown={e => e.key === "Enter" && addFirm()}
+          style={{ ...inputStyle, maxWidth: 240, fontSize: 12, padding: "8px 12px" }}
+        />
+        <button onClick={addFirm} disabled={!newFirmName.trim()} style={{ background: newFirmName.trim() ? "#c9a84c" : "#333", border: "none", borderRadius: 6, color: newFirmName.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newFirmName.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
+          <Plus size={12} /> Add Firm
+        </button>
+      </div>
     </div>
   );
 }
@@ -389,6 +620,9 @@ export default function SettingsPage() {
           </button>
         </div>
       </Section>
+
+      {/* Prop Firm Rules */}
+      <PropFirmRulesSection />
 
       {/* Danger Zone */}
       <div style={{ background: "#111", border: "1px solid #ef444444", borderRadius: 12, padding: 28, marginBottom: 20 }}>

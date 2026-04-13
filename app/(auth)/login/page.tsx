@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 function GoogleIcon() {
   return (
@@ -15,14 +16,6 @@ function GoogleIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -30,7 +23,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   async function handleGoogleLogin() {
     setGoogleLoading(true);
@@ -58,7 +50,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a0a", padding: "0 24px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "radial-gradient(ellipse at 50% 30%, #161616 0%, #0a0a0a 70%)", padding: "0 24px" }}>
+
+      {/* Logo */}
+      <div style={{ marginBottom: 20, textAlign: "center" }}>
+        <Image src="/logo.png" alt="OTO" width={80} height={80} style={{ objectFit: "contain" }} />
+      </div>
 
       {/* Heading */}
       <h1 style={{ fontSize: 32, fontWeight: 700, color: "#fff", margin: "0 0 8px", textAlign: "center" }}>Get started</h1>
@@ -95,7 +92,6 @@ export default function LoginPage() {
           {googleLoading ? "Redirecting..." : "Continue with Google"}
         </button>
 
-
         {/* Divider */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: "#1e1e1e" }} />
@@ -113,13 +109,13 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Email"
-              style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "13px 14px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }}
-              onFocus={e => (e.currentTarget.style.borderColor = "#333")}
+              style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "13px 14px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }}
+              onFocus={e => (e.currentTarget.style.borderColor = "#c9a84c55")}
               onBlur={e => (e.currentTarget.style.borderColor = "#222")}
             />
           </div>
 
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 8 }}>
             <label style={{ display: "block", fontSize: 13, color: "#666", marginBottom: 7 }}>Password</label>
             <input
               type="password"
@@ -127,10 +123,17 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "13px 14px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }}
-              onFocus={e => (e.currentTarget.style.borderColor = "#333")}
+              style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "13px 14px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }}
+              onFocus={e => (e.currentTarget.style.borderColor = "#c9a84c55")}
               onBlur={e => (e.currentTarget.style.borderColor = "#222")}
             />
+          </div>
+
+          <div style={{ textAlign: "right", marginBottom: 20 }}>
+            <a href="/forgot-password" style={{ fontSize: 12, color: "#555", textDecoration: "none" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#c9a84c")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#555")}
+            >Forgot password?</a>
           </div>
 
           {error && (
@@ -142,7 +145,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{ width: "100%", background: loading ? "#555" : "#c9a84c", color: "#000", fontWeight: 700, fontSize: 15, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", transition: "background 0.2s" }}
+            style={{ width: "100%", background: loading ? "#555" : "#c9a84c", color: "#000", fontWeight: 700, fontSize: 15, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", transition: "background 0.2s, filter 0.2s" }}
+            onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(0.9)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1)"; }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

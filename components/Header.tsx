@@ -1,6 +1,17 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
+
+const PAGE_TITLES: Record<string, string> = {
+  "/home": "Accounts",
+  "/trades": "Trade Log",
+  "/calendar": "Calendar",
+  "/journal": "Journal",
+  "/analysis": "Analysis",
+  "/psychology": "Psychology",
+  "/settings": "Settings",
+};
 
 interface HeaderProps {
   isMobile?: boolean;
@@ -8,6 +19,9 @@ interface HeaderProps {
 }
 
 export default function Header({ isMobile, onMenuClick }: HeaderProps) {
+  const pathname = usePathname();
+  const pageTitle = PAGE_TITLES[pathname] ?? "";
+
   return (
     <header
       style={{
@@ -17,11 +31,13 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
         right: 0,
         height: 52,
         background: "#111111",
-        borderBottom: "1px solid #222",
+        borderBottom: "1px solid #1a1a1a",
+        boxShadow: "0 1px 0 #c9a84c18",
         zIndex: 40,
         display: "flex",
         alignItems: "center",
-        paddingLeft: isMobile ? 16 : 0,
+        paddingLeft: isMobile ? 16 : 20,
+        gap: 12,
       }}
     >
       {isMobile && (
@@ -39,6 +55,13 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
         >
           <Menu size={22} />
         </button>
+      )}
+      {isMobile ? (
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#c9a84c", letterSpacing: "0.02em" }}>OTO Journal</span>
+      ) : (
+        pageTitle && (
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{pageTitle}</span>
+        )
       )}
     </header>
   );

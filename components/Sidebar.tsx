@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 interface SidebarProps {
   userEmail: string;
@@ -79,23 +80,7 @@ export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: Si
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              background: "#c9a84c",
-              borderRadius: 8,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 14,
-              color: "#000",
-              flexShrink: 0,
-            }}
-          >
-            1:1
-          </div>
+          <Image src="/logo.png" alt="OTO" width={collapsed ? 36 : 32} height={collapsed ? 36 : 32} style={{ objectFit: "contain", flexShrink: 0 }} />
           {showLabels && (
             <div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
@@ -152,6 +137,8 @@ export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: Si
                 transition: "all 0.15s",
                 marginBottom: 2,
               }}
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "#161616"; e.currentTarget.style.color = "#bbb"; } }}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888"; } }}
             >
               <Icon size={16} style={{ flexShrink: 0 }} />
               {showLabels && <span>{label}</span>}
@@ -188,7 +175,10 @@ export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: Si
             color: pathname === "/settings" ? "#c9a84c" : "#888",
             textDecoration: "none",
             fontSize: 13,
+            transition: "all 0.15s",
           }}
+          onMouseEnter={e => { if (pathname !== "/settings") { e.currentTarget.style.background = "#161616"; e.currentTarget.style.color = "#bbb"; } }}
+          onMouseLeave={e => { if (pathname !== "/settings") { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888"; } }}
         >
           <Settings size={16} style={{ flexShrink: 0 }} />
           {showLabels && <span>Settings</span>}
@@ -198,17 +188,20 @@ export default function Sidebar({ userEmail, isMobile, mobileOpen, onClose }: Si
       {/* Bottom: user + sign out */}
       <div style={{ borderTop: "1px solid #222", padding: !showLabels ? "12px 0" : "12px 16px" }}>
         {showLabels && (
-          <div
-            style={{
-              fontSize: 11,
-              color: "#555",
-              marginBottom: 8,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {userEmail}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, overflow: "hidden" }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+            <div
+              title={userEmail}
+              style={{
+                fontSize: 11,
+                color: "#555",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {userEmail}
+            </div>
           </div>
         )}
         <button

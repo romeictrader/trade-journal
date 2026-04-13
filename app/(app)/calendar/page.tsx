@@ -243,12 +243,14 @@ export default function CalendarPage() {
 
                 {/* Week summary column — desktop only */}
                 {!isMobile && (
-                  <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 80 }}>
-                    <div style={{ fontSize: 10, color: "#555", fontWeight: 600, marginBottom: 4 }}>Week {weekNum}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
-                      {weekTrades.length === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
+                  <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", minHeight: 80 }}>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Week {weekNum}</div>
+                    <div style={{ marginTop: "auto" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>
+                        {weekTrades.length === 0 ? "$0" : weekPnl >= 0 ? `$${weekPnl.toFixed(0)}` : `-$${Math.abs(weekPnl).toFixed(0)}`}
+                      </div>
+                      <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
                     </div>
-                    <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{weekTrades.length} trade{weekTrades.length !== 1 ? "s" : ""}</div>
                   </div>
                 )}
               </div>

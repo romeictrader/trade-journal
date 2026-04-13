@@ -28,7 +28,80 @@ const PROP_FIRM_SEEDS = [
   "APEX", "TopstepX", "Bulenox", "E8", "FTMO", "TradeDay",
   "FastTrackTrading", "Earn2Trade", "MyFundedFutures", "Topstep",
 ];
-const PRESET_SIZES = [25000, 50000, 100000, 150000, 200000];
+const PRESET_SIZES = [10000, 25000, 50000, 100000, 150000, 200000, 250000];
+
+// { daily_loss, max_drawdown, profit_target }
+type Preset = { daily: number; dd: number; pt: number };
+
+const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
+  apex: {
+    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
+    50000:  { daily: 1500,  dd: 2500,  pt: 3000  },
+    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
+    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+    250000: { daily: 4500,  dd: 6500,  pt: 15000 },
+    300000: { daily: 5000,  dd: 7500,  pt: 20000 },
+  },
+  topstep: {
+    50000:  { daily: 1000,  dd: 2000,  pt: 3000  },
+    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
+    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+  },
+  earn2trade: {
+    25000:  { daily: 1050,  dd: 1500,  pt: 1500  },
+    50000:  { daily: 1000,  dd: 2000,  pt: 3000  },
+    100000: { daily: 2500,  dd: 3500,  pt: 6000  },
+    150000: { daily: 3000,  dd: 5000,  pt: 9000  },
+    200000: { daily: 4000,  dd: 6000,  pt: 12000 },
+  },
+  myfundedfutures: {
+    25000:  { daily: 500,   dd: 750,   pt: 1500  },
+    50000:  { daily: 1000,  dd: 1500,  pt: 3000  },
+    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
+    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+  },
+  bulenox: {
+    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
+    50000:  { daily: 1500,  dd: 2500,  pt: 3000  },
+    100000: { daily: 2000,  dd: 3000,  pt: 6000  },
+    150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+    250000: { daily: 4000,  dd: 5500,  pt: 15000 },
+  },
+  tradeday: {
+    10000:  { daily: 400,   dd: 600,   pt: 1000  },
+    25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
+    50000:  { daily: 1500,  dd: 2000,  pt: 3000  },
+    100000: { daily: 2500,  dd: 3500,  pt: 6000  },
+  },
+};
+
+// Generic fallback by size
+const SIZE_DEFAULTS: Record<number, Preset> = {
+  10000:  { daily: 400,   dd: 500,   pt: 1000  },
+  25000:  { daily: 1000,  dd: 1500,  pt: 1500  },
+  50000:  { daily: 1200,  dd: 2000,  pt: 3000  },
+  100000: { daily: 2000,  dd: 3000,  pt: 6000  },
+  150000: { daily: 3000,  dd: 4500,  pt: 9000  },
+  200000: { daily: 3500,  dd: 5000,  pt: 12000 },
+  250000: { daily: 4000,  dd: 5500,  pt: 15000 },
+};
+
+function normalizeFirm(name: string): string {
+  const n = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (n.includes("apex")) return "apex";
+  if (n.includes("topstep")) return "topstep";
+  if (n.includes("earn2trade") || n.includes("earn2")) return "earn2trade";
+  if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
+  if (n.includes("bulenox")) return "bulenox";
+  if (n.includes("tradeday")) return "tradeday";
+  return "";
+}
+
+function getSuggestion(firm: string, size: number): Preset | null {
+  const key = normalizeFirm(firm);
+  if (key && FIRM_PRESETS[key]?.[size]) return FIRM_PRESETS[key][size];
+  return SIZE_DEFAULTS[size] ?? null;
+}
 const PRESET_COLORS = [
   "#c9a84c", "#3b82f6", "#22c55e", "#a855f7",
   "#ef4444", "#f97316", "#ec4899", "#06b6d4",
@@ -209,6 +282,29 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
             style={inputStyle}
           />
         </FieldRow>
+
+        {/* Suggested values banner */}
+        {(() => {
+          const s = getSuggestion(propFirm, accountSize);
+          if (!s) return null;
+          return (
+            <div style={{ background: "#c9a84c11", border: "1px solid #c9a84c33", borderRadius: 8, padding: "10px 14px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "#c9a84c", fontWeight: 700, marginBottom: 2 }}>Suggested values for ${(accountSize / 1000).toFixed(0)}K{normalizeFirm(propFirm) ? ` · ${propFirm}` : ""}</div>
+                <div style={{ fontSize: 11, color: "#888" }}>
+                  Daily ${s.daily.toLocaleString()} · DD ${s.dd.toLocaleString()} · PT ${s.pt.toLocaleString()}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setDailyLoss(s.daily); setMaxDrawdown(s.dd); setProfitTarget(s.pt); }}
+                style={{ background: "#c9a84c", border: "none", borderRadius: 6, color: "#000", fontWeight: 700, fontSize: 11, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                Apply
+              </button>
+            </div>
+          );
+        })()}
 
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>

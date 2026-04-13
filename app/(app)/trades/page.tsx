@@ -12,6 +12,7 @@ export default function TradesPage() {
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<keyof Trade>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [filter, setFilter] = useState<"All" | "Win" | "Loss" | "Breakeven">("All");
 
   async function loadTrades() {
     try {
@@ -34,7 +35,8 @@ export default function TradesPage() {
     loadTrades();
   }
 
-  const sorted = [...trades].sort((a, b) => {
+  const filtered = filter === "All" ? trades : trades.filter(t => t.outcome === filter);
+  const sorted = [...filtered].sort((a, b) => {
     const av = a[sortField], bv = b[sortField];
     if (av === undefined || bv === undefined) return 0;
     if (av < bv) return sortDir === "asc" ? -1 : 1;
@@ -68,6 +70,34 @@ export default function TradesPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Trade Log</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>All logged trades — add trades from your account dashboard</p>
         </div>
+      </div>
+
+      {/* Filter */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        {(["All", "Win", "Loss", "Breakeven"] as const).map((f) => {
+          const active = filter === f;
+          const colors: Record<string, string> = { All: "#c9a84c", Win: "#22c55e", Loss: "#ef4444", Breakeven: "#888" };
+          const c = colors[f];
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                padding: "6px 16px",
+                borderRadius: 6,
+                border: `1px solid ${active ? c : "#333"}`,
+                background: active ? `${c}22` : "transparent",
+                color: active ? c : "#666",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {f}{f !== "All" ? ` (${trades.filter(t => t.outcome === f).length})` : ` (${trades.length})`}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, overflow: "hidden" }}>

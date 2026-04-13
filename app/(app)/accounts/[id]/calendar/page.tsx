@@ -170,7 +170,7 @@ export default function AccountCalendarPage() {
                 })}
 
                 {/* Week summary */}
-                <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", minHeight: 80 }}>
+                <div style={{ background: weekTrades.length === 0 ? "#111" : getCellBg(weekPnl), border: "1px solid #1a1a1a", borderRadius: 4, padding: "8px 10px", display: "flex", flexDirection: "column", minHeight: 80 }}>
                   <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Week {wi + 1}</div>
                   <div style={{ marginTop: "auto" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>

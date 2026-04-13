@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Account } from "@/lib/types";
-import AutocompleteInput from "./AutocompleteInput";
 
 interface AddAccountModalProps {
   onClose: () => void;
   onSaved: () => void;
-  account?: Account; // if provided, edit mode
+  account?: Account;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -24,20 +23,23 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const PROP_FIRM_SEEDS = [
-  "Apex Trader Funding", "Topstep", "TopstepX", "Tradeify",
-  "My Funded Futures", "MyFundedFutures", "Phidias",
-  "Bulenox", "TradeDay", "Earn2Trade",
-  "Take Profit Trader", "TickTick Trader", "Lucid Trading",
-  "FundedNext", "Blue Guardian", "Aqua Funded",
-];
-const PRESET_SIZES = [10000, 25000, 50000, 75000, 100000, 150000, 200000, 250000, 300000];
-
-// { daily_loss, max_drawdown, profit_target }
 type Preset = { daily: number; dd: number; pt: number };
 
+const FIRM_LIST: { key: string; label: string }[] = [
+  { key: "apex", label: "Apex Trader Funding" },
+  { key: "topstep", label: "Topstep" },
+  { key: "tradeify", label: "Tradeify" },
+  { key: "myfundedfutures", label: "My Funded Futures" },
+  { key: "phidias", label: "Phidias" },
+  { key: "bulenox", label: "Bulenox" },
+  { key: "tradeday", label: "TradeDay" },
+  { key: "takeprofittrader", label: "Take Profit Trader" },
+  { key: "tickticktrader", label: "TickTick Trader" },
+  { key: "lucidtrading", label: "Lucid Trading" },
+  { key: "fundednext", label: "FundedNext" },
+];
+
 const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
-  // Apex Trader Funding — March 2026, NO daily loss limit
   apex: {
     25000:  { daily: 0, dd: 1000,  pt: 1500  },
     50000:  { daily: 0, dd: 2500,  pt: 3000  },
@@ -47,76 +49,58 @@ const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
     250000: { daily: 0, dd: 7500,  pt: 12500 },
     300000: { daily: 0, dd: 10000, pt: 20000 },
   },
-  // Topstep — EOD trailing, locks at starting balance
   topstep: {
     50000:  { daily: 1000, dd: 2000, pt: 3000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  // Tradeify — EOD trailing, NO daily loss (Select plan)
   tradeify: {
     25000:  { daily: 0, dd: 1500, pt: 1500 },
     50000:  { daily: 0, dd: 2500, pt: 2500 },
     100000: { daily: 0, dd: 5000, pt: 5000 },
     150000: { daily: 0, dd: 7500, pt: 7500 },
   },
-  // My Funded Futures — EOD trailing, NO daily loss during eval
   myfundedfutures: {
     25000:  { daily: 0, dd: 1000, pt: 1500 },
     50000:  { daily: 0, dd: 2000, pt: 3000 },
     100000: { daily: 0, dd: 3000, pt: 6000 },
     150000: { daily: 0, dd: 4500, pt: 9000 },
   },
-  // Phidias PropFirm — EOD trailing, NO daily loss
   phidias: {
     25000:  { daily: 0, dd: 500,  pt: 1500 },
     50000:  { daily: 0, dd: 2500, pt: 4000 },
     100000: { daily: 0, dd: 5000, pt: 4500 },
     150000: { daily: 0, dd: 7500, pt: 9000 },
   },
-  // Bulenox — 50K PT $2,000
   bulenox: {
     25000:  { daily: 1000, dd: 1500, pt: 1500 },
     50000:  { daily: 1500, dd: 2500, pt: 2000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  // TradeDay — 50K PT $3,000
   tradeday: {
     25000:  { daily: 1000, dd: 1500, pt: 1500 },
     50000:  { daily: 1500, dd: 2000, pt: 3000 },
     100000: { daily: 2500, dd: 3500, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  // Earn2Trade
-  earn2trade: {
-    25000:  { daily: 1050, dd: 1500, pt: 1500 },
-    50000:  { daily: 1000, dd: 2000, pt: 3000 },
-    100000: { daily: 2500, dd: 3500, pt: 6000 },
-    150000: { daily: 3000, dd: 5000, pt: 9000 },
-    200000: { daily: 4000, dd: 6000, pt: 12000 },
-  },
-  // Take Profit Trader
   takeprofittrader: {
     25000:  { daily: 1000, dd: 1500, pt: 1500 },
     50000:  { daily: 1200, dd: 2000, pt: 3000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  // TickTick Trader
   tickticktrader: {
     25000:  { daily: 1000, dd: 1500, pt: 1500 },
     50000:  { daily: 1200, dd: 2000, pt: 3000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  // Lucid Trading — EOD trailing, NO daily loss
   lucidtrading: {
     50000:  { daily: 0, dd: 2500, pt: 3000 },
     100000: { daily: 0, dd: 3500, pt: 6000 },
     150000: { daily: 0, dd: 5000, pt: 9000 },
   },
-  // FundedNext Futures
   fundednext: {
     50000:  { daily: 1200, dd: 2000, pt: 3000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },
@@ -125,77 +109,23 @@ const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
   },
 };
 
-// Generic fallback by size
-const SIZE_DEFAULTS: Record<number, Preset> = {
-  10000:  { daily: 400,  dd: 500,   pt: 1000  },
-  25000:  { daily: 1000, dd: 1500,  pt: 1500  },
-  50000:  { daily: 1200, dd: 2000,  pt: 3000  },
-  75000:  { daily: 1500, dd: 2750,  pt: 4250  },
-  100000: { daily: 2000, dd: 3000,  pt: 6000  },
-  150000: { daily: 3000, dd: 4500,  pt: 9000  },
-  200000: { daily: 3500, dd: 5000,  pt: 12000 },
-  250000: { daily: 4000, dd: 5500,  pt: 15000 },
-  300000: { daily: 5000, dd: 10000, pt: 20000 },
-};
-
-function normalizeFirm(name: string): string {
-  const n = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (n.includes("apex")) return "apex";
-  if (n.includes("topstep")) return "topstep";
-  if (n.includes("tradeify")) return "tradeify";
-  if (n.includes("earn2trade") || n.includes("earn2")) return "earn2trade";
-  if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
-  if (n.includes("phidias")) return "phidias";
-  if (n.includes("bulenox")) return "bulenox";
-  if (n.includes("tradeday")) return "tradeday";
-  if (n.includes("takeprofit") || n.includes("tpt")) return "takeprofittrader";
-  if (n.includes("ticktick")) return "tickticktrader";
-  if (n.includes("lucid")) return "lucidtrading";
-  if (n.includes("fundednext")) return "fundednext";
-  return "";
-}
-
-function getSuggestion(firm: string, size: number): Preset | null {
-  const key = normalizeFirm(firm);
-  if (key && FIRM_PRESETS[key]?.[size]) return FIRM_PRESETS[key][size];
-  return SIZE_DEFAULTS[size] ?? null;
-}
 const PRESET_COLORS = [
   "#c9a84c", "#3b82f6", "#22c55e", "#a855f7",
   "#ef4444", "#f97316", "#ec4899", "#06b6d4",
 ];
 
-function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!enabled)}
-      style={{
-        width: 36,
-        height: 20,
-        borderRadius: 10,
-        border: "none",
-        background: enabled ? "#22c55e" : "#333",
-        cursor: "pointer",
-        padding: 0,
-        position: "relative",
-        transition: "background 0.2s",
-        flexShrink: 0,
-      }}
-    >
-      <span style={{
-        position: "absolute",
-        top: 3,
-        left: enabled ? 19 : 3,
-        width: 14,
-        height: 14,
-        borderRadius: "50%",
-        background: "#fff",
-        transition: "left 0.2s",
-        display: "block",
-      }} />
-    </button>
-  );
+function matchFirmKey(name: string): string {
+  if (!name) return "";
+  const exact = FIRM_LIST.find(f => f.label === name);
+  if (exact) return exact.key;
+  const n = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  for (const f of FIRM_LIST) {
+    if (n.includes(f.key)) return f.key;
+  }
+  if (n.includes("apex")) return "apex";
+  if (n.includes("topstep")) return "topstep";
+  if (n.includes("myfunded") || n.includes("myff")) return "myfundedfutures";
+  return "";
 }
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -210,46 +140,37 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
 }
 
 export default function AddAccountModal({ onClose, onSaved, account }: AddAccountModalProps) {
-  const isEdit = !!account;
-  const [propFirm, setPropFirm] = useState(account?.prop_firm ?? "");
-  const [accountName, setAccountName] = useState(account?.account_name ?? "");
-  const [accountSize, setAccountSize] = useState(account?.account_size ?? 50000);
-  const [dailyLoss, setDailyLoss] = useState(account?.daily_loss_limit ?? 1000);
-  const [maxDrawdown, setMaxDrawdown] = useState(account?.max_drawdown ?? 2500);
-  const [profitTarget, setProfitTarget] = useState(account?.profit_target ?? 3000);
+  const initialFirmLabel = account ? (FIRM_LIST.find(f => f.key === matchFirmKey(account.prop_firm))?.label ?? "") : "";
 
-  // Auto-fill rules when firm or size changes (skip in edit mode)
-  useEffect(() => {
-    if (isEdit) return;
-    const s = getSuggestion(propFirm, accountSize);
-    if (s) {
-      setDailyLoss(s.daily);
-      setMaxDrawdown(s.dd);
-      setProfitTarget(s.pt);
-      setDailyLossEnabled(s.daily > 0);
-    }
-  }, [propFirm, accountSize, isEdit]);
-  const [dailyLossEnabled, setDailyLossEnabled] = useState(account?.daily_loss_enabled ?? true);
-  const [maxDrawdownEnabled, setMaxDrawdownEnabled] = useState(account?.max_drawdown_enabled ?? true);
-  const [profitTargetEnabled, setProfitTargetEnabled] = useState(account?.profit_target_enabled ?? true);
+  const [propFirm, setPropFirm] = useState(initialFirmLabel);
+  const [accountName, setAccountName] = useState(account?.account_name ?? "");
+  const [accountSize, setAccountSize] = useState(account?.account_size ?? 0);
   const [color, setColor] = useState(account?.color ?? "#c9a84c");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [userId, setUserId] = useState("");
+
+  const firmKey = FIRM_LIST.find(f => f.label === propFirm)?.key ?? "";
+  const availableSizes = firmKey ? Object.keys(FIRM_PRESETS[firmKey]).map(Number).sort((a, b) => a - b) : [];
+  const preset = firmKey ? FIRM_PRESETS[firmKey]?.[accountSize] ?? null : null;
+
+  // Auto-select first available size when firm changes
+  useEffect(() => {
+    if (firmKey && availableSizes.length > 0 && !availableSizes.includes(accountSize)) {
+      setAccountSize(availableSizes[0]);
+    }
+  }, [firmKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
-    (async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
-    })();
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
   async function handleSave() {
-    if (!propFirm || !accountName) { setError("Prop firm and account name are required"); return; }
+    if (!propFirm || !accountName || !preset) {
+      setError("Please select a prop firm, account size, and enter account name");
+      return;
+    }
     setSaving(true);
     setError("");
     const supabase = createClient();
@@ -260,12 +181,12 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
       prop_firm: propFirm,
       account_name: accountName,
       account_size: accountSize,
-      daily_loss_limit: dailyLoss,
-      max_drawdown: maxDrawdown,
-      profit_target: profitTarget,
-      daily_loss_enabled: dailyLossEnabled,
-      max_drawdown_enabled: maxDrawdownEnabled,
-      profit_target_enabled: profitTargetEnabled,
+      daily_loss_limit: preset.daily,
+      max_drawdown: preset.dd,
+      profit_target: preset.pt,
+      daily_loss_enabled: preset.daily > 0,
+      max_drawdown_enabled: true,
+      profit_target_enabled: true,
       color,
     };
 
@@ -273,12 +194,8 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
       ? await supabase.from("accounts").update(payload).eq("id", account.id)
       : await supabase.from("accounts").insert({ ...payload, user_id: user.id, starting_balance: accountSize });
 
-    if (err) {
-      setError(err.message);
-      setSaving(false);
-    } else {
-      onSaved();
-    }
+    if (err) { setError(err.message); setSaving(false); }
+    else { onSaved(); }
   }
 
   return (
@@ -303,95 +220,101 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
           </button>
         </div>
 
+        {/* Prop Firm — select dropdown */}
         <FieldRow label="Prop Firm">
-          <AutocompleteInput
-            fieldName="prop_firm"
+          <select
             value={propFirm}
-            onChange={setPropFirm}
-            placeholder="Type prop firm name..."
-            seedOptions={PROP_FIRM_SEEDS}
-            userId={userId}
-          />
+            onChange={(e) => setPropFirm(e.target.value)}
+            style={{
+              ...inputStyle,
+              cursor: "pointer",
+              appearance: "none",
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 12px center",
+              paddingRight: 32,
+            }}
+          >
+            <option value="" style={{ background: "#111", color: "#888" }}>Select prop firm...</option>
+            {FIRM_LIST.map((f) => (
+              <option key={f.key} value={f.label} style={{ background: "#111", color: "#fff" }}>
+                {f.label}
+              </option>
+            ))}
+          </select>
         </FieldRow>
 
+        {/* Account Name */}
         <FieldRow label="Account Name">
           <input
             value={accountName}
             onChange={(e) => setAccountName(e.target.value)}
             style={inputStyle}
-            placeholder="100K Account #1"
+            placeholder="My 50K Account"
           />
         </FieldRow>
 
-        <FieldRow label="Account Size">
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
-            {PRESET_SIZES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setAccountSize(s)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  border: `1px solid ${accountSize === s ? "#c9a84c" : "#333"}`,
-                  background: accountSize === s ? "#c9a84c22" : "transparent",
-                  color: accountSize === s ? "#c9a84c" : "#888",
-                  fontSize: 12,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                ${(s / 1000).toFixed(0)}K
-              </button>
-            ))}
-          </div>
-          <input
-            type="number"
-            value={accountSize}
-            onChange={(e) => setAccountSize(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
-          />
-        </FieldRow>
+        {/* Account Size — only show sizes available for selected firm */}
+        {firmKey && (
+          <FieldRow label="Account Size">
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {availableSizes.map((s) => {
+                const active = accountSize === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setAccountSize(s)}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 6,
+                      border: `1px solid ${active ? "#c9a84c" : "#333"}`,
+                      background: active ? "#c9a84c22" : "transparent",
+                      color: active ? "#c9a84c" : "#888",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    ${(s / 1000).toFixed(0)}K
+                  </button>
+                );
+              })}
+            </div>
+          </FieldRow>
+        )}
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Daily Loss Limit ($)</label>
-            <Toggle enabled={dailyLossEnabled} onChange={setDailyLossEnabled} />
+        {/* Account Rules — read-only, auto-generated */}
+        {preset && (
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 11, color: "#888", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Account Rules
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              <div style={{ background: "#0a0a0a", border: "1px solid #222", borderRadius: 8, padding: "10px 12px" }}>
+                <div style={{ fontSize: 10, color: "#555", marginBottom: 4, fontWeight: 600 }}>Daily Loss</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: preset.daily > 0 ? "#fff" : "#444" }}>
+                  {preset.daily > 0 ? `$${preset.daily.toLocaleString()}` : "None"}
+                </div>
+              </div>
+              <div style={{ background: "#0a0a0a", border: "1px solid #222", borderRadius: 8, padding: "10px 12px" }}>
+                <div style={{ fontSize: 10, color: "#555", marginBottom: 4, fontWeight: 600 }}>Max DD</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#ef4444" }}>
+                  ${preset.dd.toLocaleString()}
+                </div>
+              </div>
+              <div style={{ background: "#0a0a0a", border: "1px solid #222", borderRadius: 8, padding: "10px 12px" }}>
+                <div style={{ fontSize: 10, color: "#555", marginBottom: 4, fontWeight: 600 }}>Profit Target</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#22c55e" }}>
+                  ${preset.pt.toLocaleString()}
+                </div>
+              </div>
+            </div>
           </div>
-          <input
-            type="number"
-            value={dailyLoss}
-            onChange={(e) => setDailyLoss(parseFloat(e.target.value) || 0)}
-            style={{ ...inputStyle, opacity: dailyLossEnabled ? 1 : 0.4, pointerEvents: dailyLossEnabled ? "auto" : "none" }}
-          />
-        </div>
+        )}
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Drawdown ($)</label>
-            <Toggle enabled={maxDrawdownEnabled} onChange={setMaxDrawdownEnabled} />
-          </div>
-          <input
-            type="number"
-            value={maxDrawdown}
-            onChange={(e) => setMaxDrawdown(parseFloat(e.target.value) || 0)}
-            style={{ ...inputStyle, opacity: maxDrawdownEnabled ? 1 : 0.4, pointerEvents: maxDrawdownEnabled ? "auto" : "none" }}
-          />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-            <label style={{ fontSize: 11, color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Profit Target ($)</label>
-            <Toggle enabled={profitTargetEnabled} onChange={setProfitTargetEnabled} />
-          </div>
-          <input
-            type="number"
-            value={profitTarget}
-            onChange={(e) => setProfitTarget(parseFloat(e.target.value) || 0)}
-            style={{ ...inputStyle, opacity: profitTargetEnabled ? 1 : 0.4, pointerEvents: profitTargetEnabled ? "auto" : "none" }}
-          />
-        </div>
-
+        {/* Color */}
         <FieldRow label="Color">
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {PRESET_COLORS.map((c) => (
@@ -421,17 +344,17 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !preset}
             style={{
               flex: 1,
-              background: saving ? "#555" : "#c9a84c",
+              background: saving ? "#555" : !preset ? "#333" : "#c9a84c",
               border: "none",
               borderRadius: 8,
-              color: "#000",
+              color: !preset ? "#666" : "#000",
               fontWeight: 700,
               fontSize: 14,
               padding: "13px",
-              cursor: saving ? "not-allowed" : "pointer",
+              cursor: saving || !preset ? "not-allowed" : "pointer",
             }}
           >
             {saving ? "Saving..." : account ? "Save Changes" : "Save Account"}

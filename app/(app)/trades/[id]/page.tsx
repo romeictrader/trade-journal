@@ -141,42 +141,26 @@ export default function TradeViewPage() {
             <Row label="Day"><Val v={trade.day} /></Row>
             <Row label="Outcome">{trade.outcome ? <Badge value={trade.outcome} color={outcomeColor} /> : <Val />}</Row>
             <Row label="Direction">{trade.direction ? <Badge value={trade.direction} color={dirColor} /> : <Val />}</Row>
-            <Row label="Session"><Val v={trade.session} /></Row>
-            <Row label="News"><Val v={trade.news} /></Row>
-            <Row label="Day Probability"><Val v={trade.day_probability} /></Row>
-            <Row label="Emotions"><Val v={trade.emotions} /></Row>
-            <Row label="Rules Broken"><Val v={trade.rules_broken} /></Row>
             <Row label="Contract"><Val v={trade.contract} /></Row>
             <Row label="Contracts"><Val v={trade.contracts} /></Row>
             <Row label="R:R">{trade.rr != null ? <span style={{ color: "#ccc", fontSize: 14 }}>{trade.rr}R</span> : <span style={{ color: "#333" }}>—</span>}</Row>
             <Row label="TP Size"><Val v={trade.tp_size} /></Row>
             <Row label="SL Size"><Val v={trade.sl_size} /></Row>
             <Row label="Execution Time"><Val v={trade.execution_time} /></Row>
-            <Row label="Execution Grade"><Val v={trade.execution} /></Row>
-            <Row label="Checklist Followed">
-              <Badge value={trade.checklist ? "Yes" : "No"} color={trade.checklist ? "green" : "gray"} />
-            </Row>
+            <Row label="Session"><Val v={trade.session} /></Row>
+            <Row label="News"><Val v={trade.news} /></Row>
+            <Row label="Day Probability"><Val v={trade.day_probability} /></Row>
             <Row label="PDA"><Val v={trade.pda} /></Row>
             <Row label="Manipulation"><Val v={trade.manipulation} /></Row>
-            <Row label="Context"><Val v={trade.context} /></Row>
-            {trade.narrative ? (
-              <Row label="Narrative">
-                <div style={{ color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#0a0a0a", borderRadius: 8, padding: "10px 12px" }}>{trade.narrative}</div>
+            <Row label="Execution Grade"><Val v={trade.execution} /></Row>
+            {trade.context ? (
+              <Row label="Trade Explanation">
+                <div style={{ color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#0a0a0a", borderRadius: 8, padding: "10px 12px" }}>{trade.context}</div>
               </Row>
-            ) : <Row label="Narrative"><Val /></Row>}
+            ) : null}
             {trade.explanation ? (
-              <Row label="Explanation">
+              <Row label="Post-Trade Explanation">
                 <div style={{ color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#0a0a0a", borderRadius: 8, padding: "10px 12px" }}>{trade.explanation}</div>
-              </Row>
-            ) : <Row label="Explanation"><Val /></Row>}
-            {trade.emotions_psych ? (
-              <Row label="Emotions / Psych">
-                <div style={{ color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#0a0a0a", borderRadius: 8, padding: "10px 12px" }}>{trade.emotions_psych}</div>
-              </Row>
-            ) : <Row label="Emotions / Psych"><Val /></Row>}
-            {trade.notes ? (
-              <Row label="Notes">
-                <div style={{ color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#0a0a0a", borderRadius: 8, padding: "10px 12px" }}>{trade.notes}</div>
               </Row>
             ) : null}
           </div>

@@ -68,9 +68,9 @@ const FIRM_DATA: Record<string, FirmConfig> = {
   topstep: {
     plans: [
       { key: "standard", label: "Standard", sizes: {
-        50000:  { daily: 1000, dd: 2000, pt: 3000 },
-        100000: { daily: 2000, dd: 3000, pt: 6000 },
-        150000: { daily: 3000, dd: 4500, pt: 9000 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
       }},
     ],
   },

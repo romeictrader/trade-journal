@@ -119,11 +119,11 @@ export default function AccountCalendarPage() {
         </div>
 
         {/* Calendar grid + week summary side column */}
-        <div style={{ flex: 1, display: "flex", gap: 2 }}>
+        <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 2 }}>
           {/* Day cells */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, flex: 1 }}>
+              <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, flex: 1, minHeight: 0 }}>
                 {week.map((day, di) => {
                   if (!day) return <div key={`e-${di}`} style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 4 }} />;
                   const ds = dateStr(year, month, day);
@@ -167,7 +167,7 @@ export default function AccountCalendarPage() {
           </div>
 
           {/* Week summary column — separate flex column so heights always match */}
-          <div style={{ width: 90, display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ width: 90, minHeight: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             {weeks.map((week, wi) => {
               const weekTrades: Trade[] = [];
               for (const day of week) {
@@ -177,7 +177,7 @@ export default function AccountCalendarPage() {
               }
               const weekPnl = weekTrades.reduce((s, t) => s + t.pnl, 0);
               return (
-                <div key={wi} style={{ flex: 1, background: weekTrades.length === 0 ? "#111" : getCellBg(weekPnl), border: "1px solid #1a1a1a", borderRadius: 4, padding: "6px 8px", display: "flex", flexDirection: "column" }}>
+                <div key={wi} style={{ flex: 1, minHeight: 0, overflow: "hidden", background: weekTrades.length === 0 ? "#111" : getCellBg(weekPnl), border: "1px solid #1a1a1a", borderRadius: 4, padding: "6px 8px", display: "flex", flexDirection: "column" }}>
                   <div style={{ fontSize: 9, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Week {wi + 1}</div>
                   <div style={{ marginTop: "auto" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: weekTrades.length === 0 ? "#444" : weekPnl >= 0 ? "#4caf50" : "#ef5350" }}>

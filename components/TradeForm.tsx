@@ -526,52 +526,6 @@ export default function TradeForm({ accountId, onSave, onCancel, initialTrade }:
         </FieldRow>
       </Section>
 
-      {/* Section 3 — Psychology */}
-      <Section title="Psychology" defaultOpen={false}>
-        <FieldRow label="Emotions (Pre-trade)">
-          <MultiTagInput
-            fieldName="emotions"
-            value={emotions}
-            onChange={setEmotions}
-            placeholder="Calm, Confident..."
-            seedOptions={["Calm", "Confident", "Neutral", "Anxious", "FOMO", "Revenge", "Bored", "Tired", "Excited"]}
-            userId={userId}
-          />
-        </FieldRow>
-        <FieldRow label="Rules Broken">
-          <MultiTagInput
-            fieldName="rules_broken"
-            value={rulesBroken}
-            onChange={setRulesBroken}
-            placeholder="None, Overtraded..."
-            seedOptions={["None", "Overtraded", "Moved SL", "FOMO Entry", "Sized Too Big", "Early Exit", "Chased Entry", "Broke Daily Loss Rule"]}
-            userId={userId}
-          />
-        </FieldRow>
-        <div style={{ gridColumn: "1 / -1" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#ccc", cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={checklist}
-              onChange={(e) => setChecklist(e.target.checked)}
-              style={{ accentColor: "#c9a84c", width: 16, height: 16 }}
-            />
-            Followed pre-trade checklist
-          </label>
-        </div>
-        <div style={{ gridColumn: "1 / -1" }}>
-          <FieldRow label="Emotions / Psych (Post-trade)">
-            <MultiTagInput
-              fieldName="emotions_psych"
-              value={emotionsPsych}
-              onChange={setEmotionsPsych}
-              placeholder="Disciplined, Regret..."
-              seedOptions={["Disciplined", "Regret", "Confident", "Frustrated", "Calm", "Greedy", "Patient"]}
-              userId={userId}
-            />
-          </FieldRow>
-        </div>
-      </Section>
 
       {/* Section 4 — Analysis */}
       <Section title="Analysis" defaultOpen={false}>

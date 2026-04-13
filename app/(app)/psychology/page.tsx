@@ -19,7 +19,7 @@ export default function PsychologyPage() {
   const [userId, setUserId] = useState("");
 
   const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
-  const [date] = useState(today);
+  const [date, setDate] = useState(today);
   const [followedRules, setFollowedRules] = useState<boolean | null>(null);
   const [rulesBroken, setRulesBroken] = useState("");
   const [notes, setNotes] = useState("");
@@ -75,6 +75,22 @@ export default function PsychologyPage() {
     setTimeout(() => setSaved(false), 1500);
   }, [date, followedRules, rulesBroken, notes]);
 
+  // Load check-in data when date changes
+  useEffect(() => {
+    const existing = checkins.find((c) => c.date === date);
+    if (existing) {
+      setFollowedRules(existing.followed_rules ?? null);
+      setNotes(existing.notes ?? "");
+      const rb = (existing as unknown as Record<string, unknown>).rules_broken as string | null;
+      setRulesBroken(rb ?? "");
+    } else {
+      setFollowedRules(null);
+      setNotes("");
+      setRulesBroken("");
+    }
+    setSaved(false);
+  }, [date, checkins]);
+
   function scheduleAutoSave(fields: { followedRules?: boolean; rulesBroken?: string; notes?: string }) {
     if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
     autoSaveRef.current = setTimeout(() => doSave(fields), 1000);
@@ -122,7 +138,27 @@ export default function PsychologyPage() {
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
         {/* Left: Check-in form */}
         <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 24 }}>
-          <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Daily Check-in — {date}</h3>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Daily Check-in</h3>
+            <input
+              type="date"
+              value={date}
+              max={today}
+              onChange={(e) => setDate(e.target.value)}
+              style={{
+                background: "#0a0a0a",
+                border: "1px solid #333",
+                borderRadius: 6,
+                padding: "6px 10px",
+                color: date === today ? "#c9a84c" : "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                outline: "none",
+                colorScheme: "dark",
+              }}
+            />
+          </div>
 
           {/* Followed rules */}
           <div style={{ marginBottom: 20 }}>

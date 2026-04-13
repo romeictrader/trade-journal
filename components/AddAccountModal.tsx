@@ -46,22 +46,22 @@ const FIRM_DATA: Record<string, FirmConfig> = {
   apex: {
     plans: [
       { key: "eod", label: "EOD", sizes: {
-        25000:  { daily: 0, dd: 1000,  pt: 1500  },
+        25000:  { daily: 0, dd: 1500,  pt: 1500  },
         50000:  { daily: 0, dd: 2500,  pt: 3000  },
         75000:  { daily: 0, dd: 2750,  pt: 4250  },
         100000: { daily: 0, dd: 3000,  pt: 6000  },
         150000: { daily: 0, dd: 5000,  pt: 9000  },
-        250000: { daily: 0, dd: 7500,  pt: 12500 },
-        300000: { daily: 0, dd: 10000, pt: 20000 },
+        250000: { daily: 0, dd: 6500,  pt: 12500 },
+        300000: { daily: 0, dd: 7500,  pt: 20000 },
       }},
       { key: "intraday", label: "Intraday", sizes: {
-        25000:  { daily: 0, dd: 1000,  pt: 1500  },
+        25000:  { daily: 0, dd: 1500,  pt: 1500  },
         50000:  { daily: 0, dd: 2500,  pt: 3000  },
         75000:  { daily: 0, dd: 2750,  pt: 4250  },
         100000: { daily: 0, dd: 3000,  pt: 6000  },
         150000: { daily: 0, dd: 5000,  pt: 9000  },
-        250000: { daily: 0, dd: 7500,  pt: 12500 },
-        300000: { daily: 0, dd: 10000, pt: 20000 },
+        250000: { daily: 0, dd: 6500,  pt: 12500 },
+        300000: { daily: 0, dd: 7500,  pt: 20000 },
       }},
     ],
   },
@@ -77,16 +77,16 @@ const FIRM_DATA: Record<string, FirmConfig> = {
   tradeify: {
     plans: [
       { key: "select", label: "Select", sizes: {
-        25000:  { daily: 0, dd: 1500, pt: 1500 },
-        50000:  { daily: 0, dd: 2500, pt: 2500 },
-        100000: { daily: 0, dd: 5000, pt: 5000 },
-        150000: { daily: 0, dd: 7500, pt: 7500 },
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
+        50000:  { daily: 0, dd: 2000, pt: 3000 },
+        100000: { daily: 0, dd: 3000, pt: 6000 },
+        150000: { daily: 0, dd: 4500, pt: 9000 },
       }},
       { key: "growth", label: "Growth", sizes: {
-        25000:  { daily: 600,  dd: 1500, pt: 1500 },
-        50000:  { daily: 1250, dd: 2500, pt: 2500 },
-        100000: { daily: 2500, dd: 5000, pt: 5000 },
-        150000: { daily: 3750, dd: 7500, pt: 7500 },
+        25000:  { daily: 600,  dd: 1000, pt: 1500 },
+        50000:  { daily: 1250, dd: 2000, pt: 3000 },
+        100000: { daily: 2500, dd: 3500, pt: 6000 },
+        150000: { daily: 3750, dd: 5000, pt: 9000 },
       }},
     ],
   },
@@ -96,6 +96,7 @@ const FIRM_DATA: Record<string, FirmConfig> = {
         50000: { daily: 0, dd: 2000, pt: 3000 },
       }},
       { key: "rapid", label: "Rapid", sizes: {
+        25000:  { daily: 0, dd: 1000, pt: 1500 },
         50000:  { daily: 0, dd: 2000, pt: 3000 },
         100000: { daily: 0, dd: 3000, pt: 6000 },
         150000: { daily: 0, dd: 4500, pt: 9000 },

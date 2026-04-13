@@ -346,7 +346,7 @@ export default function JournalPage() {
               {/* Narrative */}
               {narrative && (
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Narrative</div>
+                  <div style={{ fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Narrative / Bias</div>
                   <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 10, padding: "14px 16px", color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
                     {narrative}
                   </div>
@@ -417,7 +417,7 @@ export default function JournalPage() {
 
               {/* Narrative */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Narrative</div>
+                <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Narrative / Bias</div>
                 <textarea
                   value={narrative}
                   onChange={(e) => { setNarrative(e.target.value); }}

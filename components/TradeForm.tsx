@@ -560,13 +560,13 @@ export default function TradeForm({ accountId, onSave, onCancel, initialTrade }:
           </FieldRow>
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <FieldRow label="Market Context">
+          <FieldRow label="Trade Explanation">
             <textarea
               value={context}
               onChange={(e) => setContext(e.target.value)}
               rows={3}
               style={{ ...inputStyle, resize: "vertical" }}
-              placeholder="Describe the market context..."
+              placeholder="Describe your trade explanation..."
             />
           </FieldRow>
         </div>

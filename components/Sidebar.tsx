@@ -29,7 +29,7 @@ const navItems = [
   { label: "Accounts", icon: Briefcase, href: "/home" },
   { label: "Trade Log", icon: BookOpen, href: "/trades" },
   { label: "Combined Calendar", icon: Calendar, href: "/calendar" },
-  { label: "Journal", icon: FileText, href: "/journal" },
+  { label: "Narrative / Bias", icon: FileText, href: "/journal" },
   { label: "Analysis", icon: BarChart2, href: "/analysis" },
   { label: "Psychology", icon: Brain, href: "/psychology" },
 ];

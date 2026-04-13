@@ -22,7 +22,7 @@ function Skeleton({ width, height }: { width?: string | number; height?: string 
   );
 }
 
-function DonutRing({ pct, color, size = 60 }: { pct: number; color: string; size?: number }) {
+function DonutRing({ pct, color, size = 60, hasData = true }: { pct: number; color: string; size?: number; hasData?: boolean }) {
   const r = (size - 10) / 2;
   const cx = size / 2, cy = size / 2;
   const circ = 2 * Math.PI * r;
@@ -30,8 +30,7 @@ function DonutRing({ pct, color, size = 60 }: { pct: number; color: string; size
   const empty = 1 - filled;
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      {/* Red background (unfilled portion) */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={hasData ? "#ef4444" : "#252525"} strokeWidth={5} />
       {/* Colored filled portion */}
       {filled > 0 && (
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={5}
@@ -44,7 +43,7 @@ function DonutRing({ pct, color, size = 60 }: { pct: number; color: string; size
   );
 }
 
-function WinRateRing({ winRate, size = 60 }: { winRate: number; size?: number }) {
+function WinRateRing({ winRate, size = 60, hasData = true }: { winRate: number; size?: number; hasData?: boolean }) {
   const r = (size - 10) / 2;
   const cx = size / 2, cy = size / 2;
   const circ = 2 * Math.PI * r;
@@ -52,8 +51,7 @@ function WinRateRing({ winRate, size = 60 }: { winRate: number; size?: number })
   const lp = 1 - wp;
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      {/* Red base (losses) */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ef4444" strokeWidth={5} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={hasData ? "#ef4444" : "#252525"} strokeWidth={5} />
       {/* Green wins arc */}
       {wp > 0 && (
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#22c55e" strokeWidth={5}
@@ -518,7 +516,7 @@ export default function AccountDashboard() {
             <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{winRate.toFixed(1)}%</div>
             <div style={{ fontSize: 11, color: "#444", marginTop: 8 }}>{wins}W / {losses}L</div>
           </div>
-          <WinRateRing winRate={winRate} size={isMobile ? 50 : 60} />
+          <WinRateRing winRate={winRate} size={isMobile ? 50 : 60} hasData={trades.length > 0} />
         </div>
 
         {/* Profit Factor */}
@@ -529,7 +527,7 @@ export default function AccountDashboard() {
               {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
           </div>
-          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor === 0 ? "#555" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
+          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor === 0 ? "#555" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} hasData={trades.length > 0} />
         </div>
 
         {/* Avg R:R */}
@@ -538,7 +536,7 @@ export default function AccountDashboard() {
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Avg R:R</div>
             <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
           </div>
-          <DonutRing pct={avgRR / 3} color={avgRR === 0 ? "#555" : avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} />
+          <DonutRing pct={avgRR / 3} color={avgRR === 0 ? "#555" : avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} hasData={trades.length > 0} />
         </div>
 
       </div>

@@ -35,7 +35,7 @@ const FIRM_LIST: { key: string; label: string }[] = [
   { key: "tradeday", label: "TradeDay" },
   { key: "takeprofittrader", label: "Take Profit Trader" },
   { key: "tickticktrader", label: "TickTick Trader" },
-  { key: "lucidtrading", label: "Lucid Trading" },
+
   { key: "fundednext", label: "FundedNext" },
 ];
 
@@ -96,11 +96,7 @@ const FIRM_PRESETS: Record<string, Record<number, Preset>> = {
     100000: { daily: 2000, dd: 3000, pt: 6000 },
     150000: { daily: 3000, dd: 4500, pt: 9000 },
   },
-  lucidtrading: {
-    50000:  { daily: 0, dd: 2500, pt: 3000 },
-    100000: { daily: 0, dd: 3500, pt: 6000 },
-    150000: { daily: 0, dd: 5000, pt: 9000 },
-  },
+
   fundednext: {
     50000:  { daily: 1200, dd: 2000, pt: 3000 },
     100000: { daily: 2000, dd: 3000, pt: 6000 },

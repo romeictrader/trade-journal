@@ -558,48 +558,10 @@ export default function SettingsPage() {
       {/* Appearance */}
       <Section title="Appearance">
         <FieldRow label="Theme">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <SegmentedControl
-              options={["Dark"]}
-              value={settings.theme === "dark" ? "Dark" : "Light"}
-              onChange={(v) => setSettings((s) => ({ ...s, theme: v === "Dark" ? "dark" : "light" }))}
-            />
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                background: "#333",
-                color: "#888",
-                padding: "3px 8px",
-                borderRadius: 20,
-                letterSpacing: "0.04em",
-              }}
-            >
-              Light — Coming Soon
-            </span>
-          </div>
-        </FieldRow>
-      </Section>
-
-      {/* Trading Defaults */}
-      <Section title="Trading Defaults">
-        <FieldRow label="Default Currency">
-          <input
-            type="text"
-            value={settings.default_currency}
-            onChange={(e) => setSettings((s) => ({ ...s, default_currency: e.target.value.toUpperCase() }))}
-            style={inputStyle}
-            maxLength={5}
-            placeholder="USD"
-          />
-        </FieldRow>
-        <FieldRow label="Risk Per Trade ($) — used for R-multiple calculation">
-          <input
-            type="number"
-            value={settings.risk_per_trade}
-            onChange={(e) => setSettings((s) => ({ ...s, risk_per_trade: parseFloat(e.target.value) || 0 }))}
-            style={inputStyle}
-            min={1}
+          <SegmentedControl
+            options={["Dark", "Light"]}
+            value={settings.theme === "dark" ? "Dark" : "Light"}
+            onChange={(v) => setSettings((s) => ({ ...s, theme: v === "Dark" ? "dark" : "light" }))}
           />
         </FieldRow>
       </Section>

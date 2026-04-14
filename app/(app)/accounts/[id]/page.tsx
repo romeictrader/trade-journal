@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
 import { calculateDrawdown, DRAWDOWN_TYPES, DrawdownConfig } from "@/lib/drawdownEngine";
+import { useFirmData } from "@/lib/useFirmData";
 import Link from "next/link";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -267,6 +268,7 @@ export default function AccountDashboard() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const id = params.id as string;
+  const { firmData } = useFirmData();
 
   async function deleteTrade(tradeId: string) {
     if (!confirm("Delete this trade?")) return;
@@ -372,14 +374,20 @@ export default function AccountDashboard() {
   const balance = account.starting_balance + totalPnl;
 
   // === Drawdown engine ===
+  // Pull live drawdown type from firm config (Settings), fallback to stored account value
+  const liveFirmKey = account.prop_firm.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const liveFirm = Object.entries(firmData).find(([k]) => liveFirmKey.includes(k))?.[1];
+  const livePlan = liveFirm?.plans?.[0]; // use first plan as default match
+  const liveDrawdownType = livePlan?.drawdownType ?? account.drawdown_type ?? 2;
+
   const todayDate = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const ddConfig: DrawdownConfig = {
-    drawdownType: account.drawdown_type ?? 2,
+    drawdownType: liveDrawdownType,
     startingBalance: account.starting_balance,
     drawdownAmount: account.max_drawdown,
-    drawdownPercent: account.drawdown_percent,
+    drawdownPercent: livePlan?.drawdownPercent ?? account.drawdown_percent,
     lockTriggerBalance: account.lock_trigger_balance,
-    bufferTarget: account.buffer_target,
+    bufferTarget: livePlan?.bufferTarget ?? account.buffer_target,
     dailyLossLimit: account.daily_loss_enabled !== false ? account.daily_loss_limit : 0,
   };
   const dd = calculateDrawdown(ddConfig, trades.map(t => ({ date: t.date, pnl: t.pnl })), todayDate);
@@ -404,7 +412,7 @@ export default function AccountDashboard() {
   const sortedDates = Object.keys(dailyMap).sort().slice(-30);
   const dailyData = sortedDates.map((d) => ({ date: d.slice(5), pnl: dailyMap[d] }));
 
-  const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === (account.drawdown_type ?? 2))?.short ?? "EOD Trailing";
+  const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === liveDrawdownType)?.short ?? "EOD Trailing";
   const ruleItems = [
     account.daily_loss_enabled !== false && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
     account.max_drawdown_enabled !== false && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },

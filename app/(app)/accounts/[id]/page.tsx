@@ -374,21 +374,51 @@ export default function AccountDashboard() {
   const balance = account.starting_balance + totalPnl;
 
   // === Drawdown engine ===
-  // Pull live drawdown type from firm config (Settings), fallback to stored account value
-  const liveFirmKey = account.prop_firm.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const liveFirm = Object.entries(firmData).find(([k]) => liveFirmKey.includes(k))?.[1];
-  const livePlan = liveFirm?.plans?.[0]; // use first plan as default match
-  const liveDrawdownType = livePlan?.drawdownType ?? account.drawdown_type ?? 2;
+  // Match firm from Settings by label or key
+  const matchedFirm = (() => {
+    const firmName = account.prop_firm.toLowerCase().replace(/[^a-z0-9]/g, "");
+    for (const [key, config] of Object.entries(firmData)) {
+      if (key === firmName) return config;
+      const keyNorm = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (firmName.includes(keyNorm) || keyNorm.includes(firmName)) return config;
+    }
+    // Try partial match (e.g. "alphafutures" matches "alpha")
+    for (const [key, config] of Object.entries(firmData)) {
+      if (firmName.includes(key) || key.includes(firmName)) return config;
+    }
+    return null;
+  })();
+
+  // Find the plan that matches this account's size + DD values
+  const matchedPlan = (() => {
+    if (!matchedFirm) return null;
+    const sizeStr = String(account.account_size);
+    // Try to find plan where DD/PT match the account's stored values
+    for (const plan of matchedFirm.plans) {
+      const preset = plan.sizes[sizeStr];
+      if (preset && preset.dd === account.max_drawdown && preset.pt === account.profit_target) return plan;
+    }
+    // Fallback: find plan that has this size
+    for (const plan of matchedFirm.plans) {
+      if (plan.sizes[sizeStr]) return plan;
+    }
+    return matchedFirm.plans[0] ?? null;
+  })();
+
+  // Live config from Settings (overrides stored account values)
+  const liveDrawdownEnabled = matchedPlan ? matchedPlan.drawdownEnabled !== false : account.max_drawdown_enabled !== false;
+  const liveDrawdownType = matchedPlan?.drawdownType ?? account.drawdown_type ?? 2;
+  const liveDailyLossEnabled = matchedPlan ? (account.daily_loss_limit > 0) : account.daily_loss_enabled !== false;
 
   const todayDate = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const ddConfig: DrawdownConfig = {
     drawdownType: liveDrawdownType,
     startingBalance: account.starting_balance,
     drawdownAmount: account.max_drawdown,
-    drawdownPercent: livePlan?.drawdownPercent ?? account.drawdown_percent,
+    drawdownPercent: matchedPlan?.drawdownPercent ?? account.drawdown_percent,
     lockTriggerBalance: account.lock_trigger_balance,
-    bufferTarget: livePlan?.bufferTarget ?? account.buffer_target,
-    dailyLossLimit: account.daily_loss_enabled !== false ? account.daily_loss_limit : 0,
+    bufferTarget: matchedPlan?.bufferTarget ?? account.buffer_target,
+    dailyLossLimit: liveDailyLossEnabled ? account.daily_loss_limit : 0,
   };
   const dd = calculateDrawdown(ddConfig, trades.map(t => ({ date: t.date, pnl: t.pnl })), todayDate);
   const trailingLimit = dd.floor;
@@ -414,8 +444,8 @@ export default function AccountDashboard() {
 
   const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === liveDrawdownType)?.short ?? "EOD Trailing";
   const ruleItems = [
-    account.daily_loss_enabled !== false && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
-    account.max_drawdown_enabled !== false && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
+    liveDailyLossEnabled && account.daily_loss_limit > 0 && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
+    liveDrawdownEnabled && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
     account.profit_target_enabled !== false && { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
   ].filter(Boolean) as { label: string; current: number; limit: number; inverted: boolean }[];
 
@@ -447,7 +477,7 @@ export default function AccountDashboard() {
         {[
           { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff" },
           { label: "Total P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
-          { label: "DD Floor", value: account.max_drawdown_enabled !== false ? `$${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—", color: balance <= trailingLimit * 1.02 ? "#ef4444" : maxDD > account.max_drawdown * 0.8 ? "#f59e0b" : "#fff" },
+          { label: "DD Floor", value: liveDrawdownEnabled ? `$${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—", color: balance <= trailingLimit * 1.02 ? "#ef4444" : maxDD > account.max_drawdown * 0.8 ? "#f59e0b" : "#fff" },
         ].map((item) => (
           <div key={item.label}>
             <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{item.label}</div>
@@ -460,7 +490,7 @@ export default function AccountDashboard() {
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: "20px", marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
-          {account.max_drawdown_enabled !== false && (
+          {liveDrawdownEnabled && (
             <span style={{ fontSize: 11, color: dd.isLocked || dd.breached ? "#c9a84c" : "#555", fontWeight: 600 }}>
               {dd.breached ? "BREACHED" : dd.isLocked ? "Floor Locked" : ddTypeName}
             </span>

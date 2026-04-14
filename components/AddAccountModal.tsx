@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Account } from "@/lib/types";
 import { useFirmData } from "@/lib/useFirmData";
-import { DRAWDOWN_TYPES } from "@/lib/drawdownEngine";
 
 interface AddAccountModalProps {
   onClose: () => void;
@@ -54,10 +53,6 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
   const [accountName, setAccountName] = useState(account?.account_name ?? "");
   const [accountSize, setAccountSize] = useState(account?.account_size ?? 0);
   const [color, setColor] = useState(account?.color ?? "#c9a84c");
-  const [drawdownType, setDrawdownType] = useState(account?.drawdown_type ?? 3);
-  const [drawdownPercent, setDrawdownPercent] = useState(account?.drawdown_percent ?? 0.04);
-  const [lockTriggerBalance, setLockTriggerBalance] = useState(account?.lock_trigger_balance ?? 0);
-  const [bufferTarget, setBufferTarget] = useState(account?.buffer_target ?? 0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -81,16 +76,13 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
     setAccountSize(0);
   }, [firmKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-select first size and drawdown type when plan changes
+  // Auto-select first size when plan changes
   useEffect(() => {
     if (selectedPlan) {
       const sizes = Object.keys(selectedPlan.sizes).map(Number).sort((a, b) => a - b);
       if (sizes.length > 0 && !sizes.includes(accountSize)) {
         setAccountSize(sizes[0]);
       }
-      if (selectedPlan.drawdownType) setDrawdownType(selectedPlan.drawdownType);
-      if (selectedPlan.drawdownPercent) setDrawdownPercent(selectedPlan.drawdownPercent);
-      if (selectedPlan.bufferTarget) setBufferTarget(selectedPlan.bufferTarget);
     }
   }, [planType]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -111,6 +103,7 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError("Not authenticated"); setSaving(false); return; }
 
+    const ddType = selectedPlan?.drawdownType ?? 2;
     const payload: Record<string, unknown> = {
       prop_firm: propFirm,
       account_name: accountName,
@@ -119,13 +112,13 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
       max_drawdown: preset.dd,
       profit_target: preset.pt,
       daily_loss_enabled: preset.daily > 0,
-      max_drawdown_enabled: true,
+      max_drawdown_enabled: selectedPlan?.drawdownEnabled !== false,
       profit_target_enabled: true,
       color,
-      drawdown_type: drawdownType,
-      drawdown_percent: drawdownType === 6 ? drawdownPercent : null,
-      lock_trigger_balance: drawdownType === 5 ? (lockTriggerBalance || accountSize + preset.dd) : null,
-      buffer_target: drawdownType === 7 ? (bufferTarget || preset.dd) : null,
+      drawdown_type: ddType,
+      drawdown_percent: ddType === 5 ? (selectedPlan?.drawdownPercent ?? 0.04) : null,
+      lock_trigger_balance: ddType === 4 ? (selectedPlan?.lockTriggerOffset ? accountSize + selectedPlan.lockTriggerOffset : accountSize + preset.dd) : null,
+      buffer_target: ddType === 6 ? (selectedPlan?.bufferTarget ?? preset.dd) : null,
     };
 
     const { error: err } = account
@@ -257,49 +250,6 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
               </div>
             </div>
           </div>
-        )}
-
-        {/* Drawdown Type */}
-        {preset && (
-          <FieldRow label="Drawdown Type">
-            <select
-              value={drawdownType}
-              onChange={(e) => setDrawdownType(Number(e.target.value))}
-              style={{
-                ...inputStyle,
-                cursor: "pointer",
-                appearance: "none",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 12px center",
-                paddingRight: 32,
-              }}
-            >
-              {DRAWDOWN_TYPES.map((dt) => (
-                <option key={dt.value} value={dt.value} style={{ background: "#111", color: "#fff" }}>
-                  {dt.label}
-                </option>
-              ))}
-            </select>
-            {drawdownType === 5 && (
-              <div style={{ marginTop: 8 }}>
-                <label style={{ fontSize: 10, color: "#555", marginBottom: 4, display: "block" }}>Lock Trigger Balance ($)</label>
-                <input type="number" value={lockTriggerBalance || accountSize + (preset?.dd ?? 0)} onChange={e => setLockTriggerBalance(Number(e.target.value) || 0)} style={{ ...inputStyle, fontSize: 12 }} />
-              </div>
-            )}
-            {drawdownType === 6 && (
-              <div style={{ marginTop: 8 }}>
-                <label style={{ fontSize: 10, color: "#555", marginBottom: 4, display: "block" }}>Drawdown Percent (%)</label>
-                <input type="number" value={drawdownPercent * 100} onChange={e => setDrawdownPercent((Number(e.target.value) || 0) / 100)} style={{ ...inputStyle, fontSize: 12 }} step={0.5} />
-              </div>
-            )}
-            {drawdownType === 7 && (
-              <div style={{ marginTop: 8 }}>
-                <label style={{ fontSize: 10, color: "#555", marginBottom: 4, display: "block" }}>Buffer Target ($)</label>
-                <input type="number" value={bufferTarget || (preset?.dd ?? 0)} onChange={e => setBufferTarget(Number(e.target.value) || 0)} style={{ ...inputStyle, fontSize: 12 }} />
-              </div>
-            )}
-          </FieldRow>
         )}
 
         {/* Color */}

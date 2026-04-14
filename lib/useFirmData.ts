@@ -20,8 +20,8 @@ export type Firm = { key: string; label: string; plans: Plan[] };
 const DEFAULT_FIRMS: Firm[] = [
   {
     key: "apex", label: "Apex Trader Funding", plans: [
-      { key: "eod", label: "EOD", sizes: { "25000": { daily: 0, dd: 1500, pt: 1500 }, "50000": { daily: 0, dd: 2500, pt: 3000 }, "75000": { daily: 0, dd: 2750, pt: 4250 }, "100000": { daily: 0, dd: 3000, pt: 6000 }, "150000": { daily: 0, dd: 5000, pt: 9000 }, "250000": { daily: 0, dd: 6500, pt: 12500 }, "300000": { daily: 0, dd: 7500, pt: 20000 } } },
-      { key: "intraday", label: "Intraday", sizes: { "25000": { daily: 0, dd: 1500, pt: 1500 }, "50000": { daily: 0, dd: 2500, pt: 3000 }, "75000": { daily: 0, dd: 2750, pt: 4250 }, "100000": { daily: 0, dd: 3000, pt: 6000 }, "150000": { daily: 0, dd: 5000, pt: 9000 }, "250000": { daily: 0, dd: 6500, pt: 12500 }, "300000": { daily: 0, dd: 7500, pt: 20000 } } },
+      { key: "eod", label: "EOD", drawdownType: 4, sizes: { "25000": { daily: 0, dd: 1500, pt: 1500 }, "50000": { daily: 0, dd: 2500, pt: 3000 }, "75000": { daily: 0, dd: 2750, pt: 4250 }, "100000": { daily: 0, dd: 3000, pt: 6000 }, "150000": { daily: 0, dd: 5000, pt: 9000 }, "250000": { daily: 0, dd: 6500, pt: 12500 }, "300000": { daily: 0, dd: 7500, pt: 20000 } } },
+      { key: "intraday", label: "Intraday", drawdownType: 1, sizes: { "25000": { daily: 0, dd: 1000, pt: 1500 }, "50000": { daily: 0, dd: 2000, pt: 3000 }, "100000": { daily: 0, dd: 3000, pt: 6000 }, "150000": { daily: 0, dd: 4000, pt: 9000 } } },
     ],
   },
   {

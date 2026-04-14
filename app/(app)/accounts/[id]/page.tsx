@@ -374,7 +374,7 @@ export default function AccountDashboard() {
   // === Drawdown engine ===
   const todayDate = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const ddConfig: DrawdownConfig = {
-    drawdownType: account.drawdown_type ?? 3,
+    drawdownType: account.drawdown_type ?? 2,
     startingBalance: account.starting_balance,
     drawdownAmount: account.max_drawdown,
     drawdownPercent: account.drawdown_percent,
@@ -404,7 +404,7 @@ export default function AccountDashboard() {
   const sortedDates = Object.keys(dailyMap).sort().slice(-30);
   const dailyData = sortedDates.map((d) => ({ date: d.slice(5), pnl: dailyMap[d] }));
 
-  const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === (account.drawdown_type ?? 3))?.short ?? "EOD Trailing";
+  const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === (account.drawdown_type ?? 2))?.short ?? "EOD Trailing";
   const ruleItems = [
     account.daily_loss_enabled !== false && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
     account.max_drawdown_enabled !== false && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },

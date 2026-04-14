@@ -37,14 +37,13 @@ export interface DrawdownResult {
 }
 
 export const DRAWDOWN_TYPES: { value: number; label: string; short: string }[] = [
-  { value: 1, label: "Intraday Trailing (Unrealized)", short: "Intraday Unreal." },
-  { value: 2, label: "Intraday Trailing (Realized)", short: "Intraday Real." },
-  { value: 3, label: "EOD Trailing", short: "EOD Trailing" },
-  { value: 4, label: "Static", short: "Static" },
-  { value: 5, label: "EOD Trailing → Locks", short: "EOD → Lock" },
-  { value: 6, label: "Relative (% of Balance)", short: "Relative %" },
-  { value: 7, label: "Buffer Zone", short: "Buffer Zone" },
-  { value: 8, label: "Daily Loss Limit Only", short: "DLL Only" },
+  { value: 1, label: "Intraday Trailing Drawdown", short: "Intraday Trailing" },
+  { value: 2, label: "EOD Trailing", short: "EOD Trailing" },
+  { value: 3, label: "Static", short: "Static" },
+  { value: 4, label: "EOD Trailing → Locks", short: "EOD → Lock" },
+  { value: 5, label: "Relative (% of Balance)", short: "Relative %" },
+  { value: 6, label: "Buffer Zone", short: "Buffer Zone" },
+  { value: 7, label: "Daily Loss Limit Only", short: "DLL Only" },
 ];
 
 interface Trade {
@@ -84,7 +83,7 @@ export function calculateDrawdown(
   let runningBal = startingBalance;
 
   switch (drawdownType) {
-    case 1: // Intraday Trailing Unrealized — trail peak equity trade by trade
+    case 1: // Intraday Trailing Drawdown — trail peak balance trade by trade
       for (const t of trades) {
         runningBal += t.pnl;
         if (runningBal > peakBalance) peakBalance = runningBal;
@@ -93,16 +92,7 @@ export function calculateDrawdown(
       balance = runningBal;
       break;
 
-    case 2: // Intraday Trailing Realized — trail peak closed balance per trade
-      for (const t of trades) {
-        runningBal += t.pnl;
-        if (runningBal > peakBalance) peakBalance = runningBal;
-      }
-      floor = peakBalance - drawdownAmount;
-      balance = runningBal;
-      break;
-
-    case 3: // EOD Trailing — trail highest end-of-day balance
+    case 2: // EOD Trailing — trail highest end-of-day balance
       for (const date of sortedDates) {
         runningBal += dailyPnl[date];
         if (runningBal > peakBalance) peakBalance = runningBal;
@@ -111,14 +101,14 @@ export function calculateDrawdown(
       balance = runningBal;
       break;
 
-    case 4: // Static — floor is fixed forever
+    case 3: // Static — floor is fixed forever
       floor = startingBalance - drawdownAmount;
       for (const date of sortedDates) runningBal += dailyPnl[date];
       balance = runningBal;
-      peakBalance = balance; // not really used for static
+      peakBalance = balance;
       break;
 
-    case 5: // EOD Trailing → Locks to Static
+    case 4: // EOD Trailing → Locks to Static
     {
       const lockTrigger = config.lockTriggerBalance ?? (startingBalance + drawdownAmount);
       for (const date of sortedDates) {
@@ -128,7 +118,6 @@ export function calculateDrawdown(
           floor = peakBalance - drawdownAmount;
           if (runningBal >= lockTrigger) {
             isLocked = true;
-            // Floor locks at current value (typically = startingBalance once HWM reaches start + DD)
             floor = Math.min(peakBalance - drawdownAmount, startingBalance);
           }
         }
@@ -137,9 +126,9 @@ export function calculateDrawdown(
       break;
     }
 
-    case 6: // Relative — percentage of current balance
+    case 5: // Relative — percentage of current balance
     {
-      const pct = config.drawdownPercent ?? 0.04; // default 4%
+      const pct = config.drawdownPercent ?? 0.04;
       for (const date of sortedDates) runningBal += dailyPnl[date];
       balance = runningBal;
       floor = balance * (1 - pct);
@@ -147,7 +136,7 @@ export function calculateDrawdown(
       break;
     }
 
-    case 7: // Buffer Zone — no floor until buffer earned
+    case 6: // Buffer Zone — no floor until buffer earned
     {
       const bufferTarget = config.bufferTarget ?? drawdownAmount;
       for (const date of sortedDates) runningBal += dailyPnl[date];
@@ -163,14 +152,14 @@ export function calculateDrawdown(
       break;
     }
 
-    case 8: // Daily Loss Limit Only — no trailing floor, just DLL
+    case 7: // Daily Loss Limit Only — no trailing floor, just DLL
       for (const date of sortedDates) runningBal += dailyPnl[date];
       balance = runningBal;
       floor = -Infinity; // no max drawdown floor
       peakBalance = balance;
       break;
 
-    default: // fallback to EOD trailing (type 3)
+    default: // fallback to EOD trailing (type 2)
       for (const date of sortedDates) {
         runningBal += dailyPnl[date];
         if (runningBal > peakBalance) peakBalance = runningBal;
@@ -179,23 +168,22 @@ export function calculateDrawdown(
       balance = runningBal;
   }
 
-  // Cap floor: for trailing types (1,2,3,5), floor should not exceed startingBalance
-  // This implements the "locks at starting balance" behavior common to most prop firms
-  if ([1, 2, 3, 5].includes(drawdownType) && !isLocked) {
+  // Cap floor: for trailing types (1,2,4), floor should not exceed startingBalance
+  if ([1, 2, 4].includes(drawdownType) && !isLocked) {
     floor = Math.min(floor, startingBalance);
   }
 
   const breached = floor !== -Infinity && balance <= floor;
   const remaining = floor === -Infinity ? Infinity : Math.max(0, balance - floor);
 
-  // Effective peak for DD consumed calculation (same logic as before)
-  const effectivePeak = [1, 2, 3, 5].includes(drawdownType)
+  // Effective peak for DD consumed calculation
+  const effectivePeak = [1, 2, 4].includes(drawdownType)
     ? Math.min(peakBalance, (isLocked ? floor : startingBalance) + drawdownAmount)
     : balance;
-  const currentDD = drawdownType === 4
+  const currentDD = drawdownType === 3
     ? Math.max(0, startingBalance - balance)
-    : drawdownType === 6
-      ? 0 // relative has no fixed DD amount
+    : drawdownType === 5
+      ? 0
       : Math.max(0, effectivePeak - balance);
 
   // DLL check
@@ -203,7 +191,7 @@ export function calculateDrawdown(
   const dllBreached = dll > 0 && todayLoss >= dll;
 
   // Buffer remaining
-  const bufferRemaining = drawdownType === 7
+  const bufferRemaining = drawdownType === 6
     ? Math.max(0, (config.bufferTarget ?? drawdownAmount) - Math.max(0, balance - startingBalance))
     : 0;
 

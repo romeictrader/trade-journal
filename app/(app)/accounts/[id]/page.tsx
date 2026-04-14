@@ -405,20 +405,25 @@ export default function AccountDashboard() {
     return matchedFirm.plans[0] ?? null;
   })();
 
-  // Live config from Settings (overrides stored account values)
+  // Live config from Settings — overrides stored account values
+  const sizeStr = String(account.account_size);
+  const livePreset = matchedPlan?.sizes[sizeStr] ?? null;
+  const liveDD = livePreset?.dd ?? account.max_drawdown;
+  const liveDLL = livePreset?.daily ?? account.daily_loss_limit;
+  const livePT = livePreset?.pt ?? account.profit_target;
   const liveDrawdownEnabled = matchedPlan ? matchedPlan.drawdownEnabled !== false : account.max_drawdown_enabled !== false;
   const liveDrawdownType = matchedPlan?.drawdownType ?? account.drawdown_type ?? 2;
-  const liveDailyLossEnabled = matchedPlan ? (account.daily_loss_limit > 0) : account.daily_loss_enabled !== false;
+  const liveDailyLossEnabled = liveDLL > 0;
 
   const todayDate = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const ddConfig: DrawdownConfig = {
     drawdownType: liveDrawdownType,
     startingBalance: account.starting_balance,
-    drawdownAmount: account.max_drawdown,
+    drawdownAmount: liveDD,
     drawdownPercent: matchedPlan?.drawdownPercent ?? account.drawdown_percent,
     lockTriggerBalance: account.lock_trigger_balance,
     bufferTarget: matchedPlan?.bufferTarget ?? account.buffer_target,
-    dailyLossLimit: liveDailyLossEnabled ? account.daily_loss_limit : 0,
+    dailyLossLimit: liveDailyLossEnabled ? liveDLL : 0,
   };
   const dd = calculateDrawdown(ddConfig, trades.map(t => ({ date: t.date, pnl: t.pnl })), todayDate);
   const trailingLimit = dd.floor;
@@ -444,9 +449,9 @@ export default function AccountDashboard() {
 
   const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === liveDrawdownType)?.short ?? "EOD Trailing";
   const ruleItems = [
-    liveDailyLossEnabled && account.daily_loss_limit > 0 && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
-    liveDrawdownEnabled && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
-    account.profit_target_enabled !== false && { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
+    liveDailyLossEnabled && { label: "Daily Loss", current: dd.dailyLoss, limit: liveDLL, inverted: true },
+    liveDrawdownEnabled && { label: "Max Drawdown", current: maxDD, limit: liveDD, inverted: true },
+    livePT > 0 && { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: livePT, inverted: false },
   ].filter(Boolean) as { label: string; current: number; limit: number; inverted: boolean }[];
 
   const recentTrades = [...trades].reverse().slice(0, 10);
@@ -477,7 +482,7 @@ export default function AccountDashboard() {
         {[
           { label: "Balance", value: `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, color: totalPnl > 0 ? "#22c55e" : totalPnl < 0 ? "#ef4444" : "#fff" },
           { label: "Total P&L", value: `$${totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "#22c55e" : "#ef4444" },
-          { label: "DD Floor", value: liveDrawdownEnabled ? `$${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—", color: balance <= trailingLimit * 1.02 ? "#ef4444" : maxDD > account.max_drawdown * 0.8 ? "#f59e0b" : "#fff" },
+          { label: "DD Floor", value: liveDrawdownEnabled ? `$${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—", color: balance <= trailingLimit * 1.02 ? "#ef4444" : maxDD > liveDD * 0.8 ? "#f59e0b" : "#fff" },
         ].map((item) => (
           <div key={item.label}>
             <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{item.label}</div>
@@ -522,7 +527,7 @@ export default function AccountDashboard() {
                 {isDD && remaining !== undefined && (
                   <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10 }}>
                     <span style={{ color: "#444" }}>Floor: <span style={{ color: "#666" }}>${trailingLimit.toLocaleString("en-US", { minimumFractionDigits: 0 })}</span></span>
-                    <span style={{ color: remaining <= account.max_drawdown * 0.2 ? "#ef4444" : remaining <= account.max_drawdown * 0.5 ? "#f59e0b" : "#444" }}>
+                    <span style={{ color: remaining <= liveDD * 0.2 ? "#ef4444" : remaining <= liveDD * 0.5 ? "#f59e0b" : "#444" }}>
                       Remaining: <span style={{ fontWeight: 600 }}>${remaining.toLocaleString("en-US", { minimumFractionDigits: 0 })}</span>
                     </span>
                   </div>

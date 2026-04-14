@@ -593,17 +593,6 @@ export default function SettingsPage() {
             placeholder="USD"
           />
         </FieldRow>
-        <FieldRow label="Default Timezone">
-          <select
-            value={settings.default_timezone}
-            onChange={(e) => setSettings((s) => ({ ...s, default_timezone: e.target.value }))}
-            style={selectStyle}
-          >
-            {TIMEZONES.map((tz) => (
-              <option key={tz} value={tz}>{tz}</option>
-            ))}
-          </select>
-        </FieldRow>
         <FieldRow label="Risk Per Trade ($) — used for R-multiple calculation">
           <input
             type="number"
@@ -615,23 +604,6 @@ export default function SettingsPage() {
         </FieldRow>
       </Section>
 
-      {/* Display */}
-      <Section title="Display">
-        <FieldRow label="Show P&L in Header">
-          <Toggle
-            value={settings.show_pnl_in_header}
-            onChange={(v) => setSettings((s) => ({ ...s, show_pnl_in_header: v }))}
-            label={settings.show_pnl_in_header ? "On" : "Off"}
-          />
-        </FieldRow>
-        <FieldRow label="Date Format">
-          <SegmentedControl
-            options={DATE_FORMATS}
-            value={settings.date_format}
-            onChange={(v) => setSettings((s) => ({ ...s, date_format: v }))}
-          />
-        </FieldRow>
-      </Section>
 
       {/* Data */}
       <Section title="Data">

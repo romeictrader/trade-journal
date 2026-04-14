@@ -426,11 +426,25 @@ function RepeatCard({ category, count, trades, reviews, router }: { category: st
   );
 }
 
+function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+      <img src={url} alt="" style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 8 }} />
+    </div>
+  );
+}
+
 function ReviewCard({ trade, review, categories, editingCats, setEditingCats, newCat, setNewCat, onAddCat, onDeleteCat, onSave, onFiles, onAddUrl, onViewTrade, tradeScreenshots }: {
   trade: Trade; review?: Review; categories: string[]; editingCats: boolean; setEditingCats: (v: boolean) => void; newCat: string; setNewCat: (v: string) => void; onAddCat: (cat: string) => void; onDeleteCat: (cat: string) => void; onSave: (r: Review) => void; onFiles: (files: FileList | null) => void; onAddUrl: (url: string) => void; onViewTrade: () => void; tradeScreenshots: string[];
 }) {
   const [expanded, setExpanded] = useState(!review?.reviewed);
   const [imgUrl, setImgUrl] = useState("");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const r: Review = review ?? { trade_id: trade.id, notes: "", what_to_improve: "", categories: [], lesson: "", images: [], reviewed: false };
 
   function update(fields: Partial<Review>) { onSave({ ...r, ...fields }); }
@@ -438,6 +452,8 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
   function removeImage(idx: number) { update({ images: r.images.filter((_, i) => i !== idx) }); }
 
   return (
+    <>
+    {lightboxUrl && <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
     <div style={{ background: "#111", border: `1px solid ${r.reviewed ? "#22c55e33" : "#222"}`, borderRadius: 12, overflow: "hidden" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#0a0a0a" }}>
         <div onClick={() => setExpanded(!expanded)} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", cursor: "pointer", flex: 1 }}>
@@ -467,7 +483,7 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
               <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Trade Screenshots</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {tradeScreenshots.map((url, i) => (
-                  <img key={i} src={url} alt="" onClick={() => window.open(url, "_blank")} style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 6, border: "1px solid #222", cursor: "pointer" }} />
+                  <img key={i} src={url} alt="" onClick={() => setLightboxUrl(url)} style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 6, border: "1px solid #222", cursor: "zoom-in" }} />
                 ))}
               </div>
             </div>
@@ -541,5 +557,6 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
         </div>
       )}
     </div>
+    </>
   );
 }

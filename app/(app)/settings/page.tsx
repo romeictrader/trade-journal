@@ -555,16 +555,6 @@ export default function SettingsPage() {
     <div style={{ padding: 32, maxWidth: 640 }}>
       <h1 style={{ margin: "0 0 28px", fontSize: 22, fontWeight: 700 }}>Journal Settings</h1>
 
-      {/* Appearance */}
-      <Section title="Appearance">
-        <FieldRow label="Theme">
-          <SegmentedControl
-            options={["Dark", "Light"]}
-            value={settings.theme === "dark" ? "Dark" : "Light"}
-            onChange={(v) => setSettings((s) => ({ ...s, theme: v === "Dark" ? "dark" : "light" }))}
-          />
-        </FieldRow>
-      </Section>
 
 
       {/* Data */}

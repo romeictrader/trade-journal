@@ -81,13 +81,16 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
     setAccountSize(0);
   }, [firmKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-select first size when plan changes
+  // Auto-select first size and drawdown type when plan changes
   useEffect(() => {
     if (selectedPlan) {
       const sizes = Object.keys(selectedPlan.sizes).map(Number).sort((a, b) => a - b);
       if (sizes.length > 0 && !sizes.includes(accountSize)) {
         setAccountSize(sizes[0]);
       }
+      if (selectedPlan.drawdownType) setDrawdownType(selectedPlan.drawdownType);
+      if (selectedPlan.drawdownPercent) setDrawdownPercent(selectedPlan.drawdownPercent);
+      if (selectedPlan.bufferTarget) setBufferTarget(selectedPlan.bufferTarget);
     }
   }, [planType]); // eslint-disable-line react-hooks/exhaustive-deps
 

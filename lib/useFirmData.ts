@@ -4,7 +4,16 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export type Preset = { daily: number; dd: number; pt: number };
-export type Plan = { key: string; label: string; sizes: Record<string, Preset> };
+export type Plan = {
+  key: string;
+  label: string;
+  sizes: Record<string, Preset>;
+  drawdownType?: number;         // 1-8, defaults to 3 (EOD Trailing)
+  drawdownEnabled?: boolean;     // default true
+  drawdownPercent?: number;      // type 6 only
+  lockTriggerOffset?: number;    // type 5: offset above starting balance where floor locks
+  bufferTarget?: number;         // type 7: profit needed before floor activates
+};
 export type Firm = { key: string; label: string; plans: Plan[] };
 
 // Default data — used to seed on first load

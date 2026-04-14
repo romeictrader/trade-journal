@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Save, Download, Trash2, Plus, ChevronDown, ChevronRight, X } from "lucide-react";
 import { useFirmData, Firm, Plan, Preset } from "@/lib/useFirmData";
+import { DRAWDOWN_TYPES } from "@/lib/drawdownEngine";
 
 interface JournalSettings {
   theme: string;
@@ -251,6 +252,16 @@ function PropFirmRulesSection() {
     }));
   }
 
+  function updatePlanField(firmKey: string, planKey: string, field: string, value: unknown) {
+    saveFirms(firms.map(f => {
+      if (f.key !== firmKey) return f;
+      return { ...f, plans: f.plans.map(p => {
+        if (p.key !== planKey) return p;
+        return { ...p, [field]: value };
+      })};
+    }));
+  }
+
   return (
     <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 28, marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
@@ -303,6 +314,53 @@ function PropFirmRulesSection() {
 
                       {planOpen && (
                         <div style={{ padding: "6px 12px 12px" }}>
+                          {/* Drawdown config */}
+                          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 10, padding: "8px 0", borderBottom: "1px solid #1a1a1a" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <button
+                                onClick={() => updatePlanField(firm.key, plan.key, "drawdownEnabled", !(plan.drawdownEnabled !== false))}
+                                style={{
+                                  width: 32, height: 18, borderRadius: 9, border: "none", padding: 0, cursor: "pointer", position: "relative",
+                                  background: plan.drawdownEnabled !== false ? "#22c55e" : "#333", transition: "background 0.2s", flexShrink: 0,
+                                }}
+                              >
+                                <span style={{ position: "absolute", top: 2, left: plan.drawdownEnabled !== false ? 16 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                              </button>
+                              <span style={{ fontSize: 10, color: "#666", fontWeight: 600 }}>DD</span>
+                            </div>
+                            {plan.drawdownEnabled !== false && (
+                              <>
+                                <select
+                                  value={plan.drawdownType ?? 3}
+                                  onChange={e => updatePlanField(firm.key, plan.key, "drawdownType", Number(e.target.value))}
+                                  style={{ ...smallInput, width: 150, textAlign: "left" as const, fontSize: 11 }}
+                                >
+                                  {DRAWDOWN_TYPES.map(dt => (
+                                    <option key={dt.value} value={dt.value}>{dt.label}</option>
+                                  ))}
+                                </select>
+                                {(plan.drawdownType ?? 3) === 6 && (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <span style={{ fontSize: 10, color: "#555" }}>%</span>
+                                    <input type="number" value={(plan.drawdownPercent ?? 0.04) * 100} onChange={e => updatePlanField(firm.key, plan.key, "drawdownPercent", (Number(e.target.value) || 0) / 100)} style={{ ...smallInput, width: 50 }} step={0.5} />
+                                  </div>
+                                )}
+                                {(plan.drawdownType ?? 3) === 5 && (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <span style={{ fontSize: 10, color: "#555" }}>Lock+$</span>
+                                    <input type="number" value={plan.lockTriggerOffset ?? 0} onChange={e => updatePlanField(firm.key, plan.key, "lockTriggerOffset", Number(e.target.value) || 0)} style={{ ...smallInput, width: 60 }} />
+                                  </div>
+                                )}
+                                {(plan.drawdownType ?? 3) === 7 && (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <span style={{ fontSize: 10, color: "#555" }}>Buffer$</span>
+                                    <input type="number" value={plan.bufferTarget ?? 0} onChange={e => updatePlanField(firm.key, plan.key, "bufferTarget", Number(e.target.value) || 0)} style={{ ...smallInput, width: 60 }} />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+
                           {/* Column headers */}
                           <div style={{ display: "grid", gridTemplateColumns: "70px 80px 80px 80px 28px", gap: 6, marginBottom: 4 }}>
                             <span style={{ fontSize: 10, color: "#444", fontWeight: 600 }}>SIZE</span>

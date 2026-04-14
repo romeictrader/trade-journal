@@ -338,11 +338,6 @@ export default function JournalPage() {
           {/* VIEW MODE */}
           {mode === "view" && currentEntry ? (
             <div>
-              {/* Mood */}
-              <div style={{ marginBottom: 24, fontSize: 28 }}>
-                {MOODS[(mood ?? 3) - 1]}
-              </div>
-
               {/* Narrative */}
               {narrative && (
                 <div style={{ marginBottom: 24 }}>
@@ -399,21 +394,6 @@ export default function JournalPage() {
                 style={{ background: "#111", border: "1px solid #222", borderRadius: 6, padding: "5px 10px", color: "#666", fontSize: 12, outline: "none", cursor: "pointer", marginBottom: 20 }}
               />
 
-              {/* Mood */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Mood</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {MOODS.map((emoji, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { setMood(i + 1); }}
-                      style={{ fontSize: 24, background: mood === i + 1 ? "#c9a84c22" : "transparent", border: `1px solid ${mood === i + 1 ? "#c9a84c" : "#222"}`, borderRadius: 10, padding: "6px 10px", cursor: "pointer" }}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               {/* Narrative */}
               <div style={{ marginBottom: 20 }}>

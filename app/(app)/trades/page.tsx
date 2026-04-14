@@ -35,7 +35,8 @@ export default function TradesPage() {
     loadTrades();
   }
 
-  const filtered = filter === "All" ? trades : trades.filter(t => t.outcome === filter);
+  const getOutcome = (t: Trade) => t.outcome || (t.pnl > 0 ? "Win" : t.pnl < 0 ? "Loss" : "Breakeven");
+  const filtered = filter === "All" ? trades : trades.filter(t => getOutcome(t) === filter);
   const sorted = [...filtered].sort((a, b) => {
     const av = a[sortField], bv = b[sortField];
     if (av === undefined || bv === undefined) return 0;
@@ -94,7 +95,7 @@ export default function TradesPage() {
                 transition: "all 0.15s",
               }}
             >
-              {f}{f !== "All" ? ` (${trades.filter(t => t.outcome === f).length})` : ` (${trades.length})`}
+              {f}{f !== "All" ? ` (${trades.filter(t => getOutcome(t) === f).length})` : ` (${trades.length})`}
             </button>
           );
         })}
@@ -143,7 +144,7 @@ export default function TradesPage() {
                   <td style={{ padding: "11px 16px", fontSize: 13, fontWeight: 700, color: t.pnl >= 0 ? "#22c55e" : "#ef4444" }}>${t.pnl >= 0 ? "+" : ""}{t.pnl.toFixed(2)}</td>
                   <td style={{ padding: "11px 16px", fontSize: 13, color: "#888" }}>{t.rr != null ? `${t.rr}R` : "—"}</td>
                   <td style={{ padding: "11px 16px" }}>
-                    {t.outcome ? <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: t.outcome === "Win" ? "#22c55e22" : t.outcome === "Loss" ? "#ef444422" : "#c9a84c22", color: t.outcome === "Win" ? "#22c55e" : t.outcome === "Loss" ? "#ef4444" : "#c9a84c", fontWeight: 600 }}>{t.outcome}</span> : <span style={{ color: "#444" }}>—</span>}
+                    {(() => { const o = getOutcome(t); return <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: o === "Win" ? "#22c55e22" : o === "Loss" ? "#ef444422" : "#c9a84c22", color: o === "Win" ? "#22c55e" : o === "Loss" ? "#ef4444" : "#c9a84c", fontWeight: 600 }}>{o}</span>; })()}
                   </td>
                   <td style={{ padding: "11px 16px", fontSize: 12, color: "#666" }}>{t.setup_tag ?? "—"}</td>
                   <td style={{ padding: "11px 16px", fontSize: 12, color: "#666" }}>{t.execution ?? "—"}</td>

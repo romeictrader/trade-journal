@@ -571,7 +571,7 @@ export default function AccountDashboard() {
               {profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}
             </div>
           </div>
-          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color={profitFactor === 0 ? "#555" : profitFactor >= 1.5 ? "#22c55e" : profitFactor >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} hasData={trades.length > 0} />
+          <DonutRing pct={profitFactor >= 999 ? 1 : profitFactor / 3} color="#22c55e" size={isMobile ? 50 : 60} hasData={trades.length > 0} />
         </div>
 
         {/* Avg R:R */}
@@ -580,7 +580,7 @@ export default function AccountDashboard() {
             <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Avg R:R</div>
             <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{avgRR.toFixed(2)}</div>
           </div>
-          <DonutRing pct={avgRR / 3} color={avgRR === 0 ? "#555" : avgRR >= 2 ? "#22c55e" : avgRR >= 1 ? "#c9a84c" : "#ef4444"} size={isMobile ? 50 : 60} hasData={trades.length > 0} />
+          <DonutRing pct={avgRR / 3} color="#22c55e" size={isMobile ? 50 : 60} hasData={trades.length > 0} />
         </div>
 
       </div>

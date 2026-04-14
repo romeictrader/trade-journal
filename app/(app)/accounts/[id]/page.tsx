@@ -389,28 +389,32 @@ export default function AccountDashboard() {
     return null;
   })();
 
-  // Find the plan that matches this account's size + DD values
+  // Find the best matching plan for this account
+  const acctSizeStr = String(account.account_size);
   const matchedPlan = (() => {
     if (!matchedFirm) return null;
-    const sizeStr = String(account.account_size);
-    // Try to find plan where DD/PT match the account's stored values
+    // 1. Exact match on DD + PT + size
     for (const plan of matchedFirm.plans) {
-      const preset = plan.sizes[sizeStr];
+      const preset = plan.sizes[acctSizeStr];
       if (preset && preset.dd === account.max_drawdown && preset.pt === account.profit_target) return plan;
     }
-    // Fallback: find plan that has this size
+    // 2. Match on just DD + size (PT might have changed in Settings)
     for (const plan of matchedFirm.plans) {
-      if (plan.sizes[sizeStr]) return plan;
+      const preset = plan.sizes[acctSizeStr];
+      if (preset && preset.dd === account.max_drawdown) return plan;
+    }
+    // 3. Any plan that has this size
+    for (const plan of matchedFirm.plans) {
+      if (plan.sizes[acctSizeStr]) return plan;
     }
     return matchedFirm.plans[0] ?? null;
   })();
 
   // Live config from Settings — overrides stored account values
-  const sizeStr = String(account.account_size);
-  const livePreset = matchedPlan?.sizes[sizeStr] ?? null;
-  const liveDD = livePreset?.dd ?? account.max_drawdown;
-  const liveDLL = livePreset?.daily ?? account.daily_loss_limit;
-  const livePT = livePreset?.pt ?? account.profit_target;
+  const livePreset = matchedPlan?.sizes[acctSizeStr] ?? null;
+  const liveDD = livePreset ? livePreset.dd : account.max_drawdown;
+  const liveDLL = livePreset ? livePreset.daily : account.daily_loss_limit;
+  const livePT = livePreset ? livePreset.pt : account.profit_target;
   const liveDrawdownEnabled = matchedPlan ? matchedPlan.drawdownEnabled !== false : account.max_drawdown_enabled !== false;
   const liveDrawdownType = matchedPlan?.drawdownType ?? account.drawdown_type ?? 2;
   const liveDailyLossEnabled = liveDLL > 0;

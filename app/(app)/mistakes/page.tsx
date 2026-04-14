@@ -181,7 +181,11 @@ export default function MistakesPage() {
   function dayHasReview(d: number) { const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`; return Object.values(reviews).some(r => r.date === ds && r.reviewed); }
 
   const uncheckedCount = checklist.filter(c => !c.checked).length;
-  const allLessons = Object.values(reviews).map(r => r.lesson).filter(Boolean);
+  const allLessons = Object.entries(reviews).map(([tid, r]) => {
+    if (!r.lesson) return null;
+    const trade = trades.find(t => t.id === tid);
+    return { lesson: r.lesson, date: trade?.date ?? r.date ?? "" };
+  }).filter(Boolean) as { lesson: string; date: string }[];
 
   if (loading) return <div style={{ padding: 24, color: "#555" }}>Loading...</div>;
 
@@ -275,7 +279,12 @@ export default function MistakesPage() {
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Reflections from Reviews ({allLessons.length})</div>
               {allLessons.map((l, i) => (
-                <div key={i} style={{ padding: "8px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #c9a84c", fontSize: 12, color: "#888" }}>{l}</div>
+                <div key={i} style={{ padding: "8px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #c9a84c" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 12, color: "#888" }}>{l.lesson}</span>
+                    <span style={{ fontSize: 10, color: "#444", flexShrink: 0, marginLeft: 12 }}>{l.date}</span>
+                  </div>
+                </div>
               ))}
             </div>
           )}

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { Shield, Check, Camera, X, ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { Shield, Check, Camera, X, ChevronDown, ChevronRight, Plus, Trash2, ExternalLink, Bell } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 const DEFAULT_CATEGORIES = [
@@ -25,24 +26,24 @@ interface Review {
 }
 
 export default function MistakesPage() {
+  const router = useRouter();
   const isMobile = useIsMobile();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"All" | "Unreviewed" | "Reviewed">("All");
   const [userId, setUserId] = useState("");
-  const [tab, setTab] = useState<"review" | "calendar" | "repeats" | "rules">("review");
+  const [tab, setTab] = useState<"checklist" | "rules" | "review" | "calendar" | "repeats">("checklist");
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  // Editable categories
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const [newCat, setNewCat] = useState("");
   const [editingCats, setEditingCats] = useState(false);
 
-  // User rules
   const [rules, setRules] = useState<string[]>([]);
   const [newRule, setNewRule] = useState("");
-  const ruleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [checklist, setChecklist] = useState<{ text: string; checked: boolean }[]>([]);
+  const [newCheckItem, setNewCheckItem] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -50,10 +51,9 @@ export default function MistakesPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
       setUserId(user.id);
-      const [{ data: td }, { data: rd }, { data: cfg }] = await Promise.all([
+      const [{ data: td }, { data: rd }] = await Promise.all([
         supabase.from("trades").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("mistake_entries").select("*").eq("user_id", user.id),
-        supabase.from("prop_firm_config").select("firms").eq("user_id", user.id).single(),
       ]);
       if (td) setTrades(td);
       if (rd) {
@@ -63,26 +63,21 @@ export default function MistakesPage() {
         }
         setReviews(map);
       }
-      // Load user categories and rules from localStorage (simple persistence)
       try {
-        const savedCats = localStorage.getItem("mistake_categories");
-        if (savedCats) setCategories(JSON.parse(savedCats));
-        const savedRules = localStorage.getItem("mistake_rules");
-        if (savedRules) setRules(JSON.parse(savedRules));
+        const sc = localStorage.getItem("mistake_categories");
+        if (sc) setCategories(JSON.parse(sc));
+        const sr = localStorage.getItem("mistake_rules");
+        if (sr) setRules(JSON.parse(sr));
+        const scl = localStorage.getItem("mistake_checklist");
+        if (scl) setChecklist(JSON.parse(scl));
       } catch { /* ignore */ }
       setLoading(false);
     })();
   }, []);
 
-  function saveCats(updated: string[]) {
-    setCategories(updated);
-    localStorage.setItem("mistake_categories", JSON.stringify(updated));
-  }
-
-  function saveRules(updated: string[]) {
-    setRules(updated);
-    localStorage.setItem("mistake_rules", JSON.stringify(updated));
-  }
+  function saveCats(u: string[]) { setCategories(u); localStorage.setItem("mistake_categories", JSON.stringify(u)); }
+  function saveRulesList(u: string[]) { setRules(u); localStorage.setItem("mistake_rules", JSON.stringify(u)); }
+  function saveChecklist(u: { text: string; checked: boolean }[]) { setChecklist(u); localStorage.setItem("mistake_checklist", JSON.stringify(u)); }
 
   const saveReview = useCallback(async (tradeId: string, review: Review) => {
     setReviews(prev => ({ ...prev, [tradeId]: review }));
@@ -138,7 +133,6 @@ export default function MistakesPage() {
   const losses = trades.filter(t => t.pnl < 0);
   const filtered = filter === "All" ? losses : filter === "Reviewed" ? losses.filter(t => reviews[t.id]?.reviewed) : losses.filter(t => !reviews[t.id]?.reviewed);
 
-  // Repeat mistakes
   const catCounts: Record<string, { count: number; trades: Trade[] }> = {};
   for (const [tid, r] of Object.entries(reviews)) {
     const trade = trades.find(t => t.id === tid);
@@ -151,7 +145,6 @@ export default function MistakesPage() {
   }
   const repeats = Object.entries(catCounts).filter(([, v]) => v.count >= 1).sort((a, b) => b[1].count - a[1].count);
 
-  // Calendar
   const now = new Date();
   const [calMonth, setCalMonth] = useState(now.getMonth());
   const [calYear, setCalYear] = useState(now.getFullYear());
@@ -161,16 +154,10 @@ export default function MistakesPage() {
   while (calCells.length % 7 !== 0) calCells.push(null);
   const [selectedCalDay, setSelectedCalDay] = useState<string | null>(null);
 
-  function dayHasLoss(d: number) {
-    const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    return losses.some(t => t.date === ds);
-  }
-  function dayHasReview(d: number) {
-    const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    return Object.values(reviews).some(r => r.date === ds && r.reviewed);
-  }
-  function getDayLosses(ds: string) { return losses.filter(t => t.date === ds); }
+  function dayHasLoss(d: number) { const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`; return losses.some(t => t.date === ds); }
+  function dayHasReview(d: number) { const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`; return Object.values(reviews).some(r => r.date === ds && r.reviewed); }
 
+  const uncheckedCount = checklist.filter(c => !c.checked).length;
   const allLessons = Object.values(reviews).map(r => r.lesson).filter(Boolean);
 
   if (loading) return <div style={{ padding: 24, color: "#555" }}>Loading...</div>;
@@ -182,14 +169,94 @@ export default function MistakesPage() {
         <p style={{ margin: 0, fontSize: 13, color: "#555" }}>Review every loss. Build your rulebook.</p>
       </div>
 
+      {/* Reminder banner */}
+      {(uncheckedCount > 0 || rules.length > 0) && (
+        <div style={{ background: "#c9a84c11", border: "1px solid #c9a84c33", borderRadius: 10, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+          <Bell size={16} color="#c9a84c" />
+          <div style={{ flex: 1 }}>
+            {uncheckedCount > 0 && <div style={{ fontSize: 12, color: "#c9a84c", fontWeight: 600 }}>{uncheckedCount} checklist item{uncheckedCount !== 1 ? "s" : ""} unchecked — review before trading</div>}
+            {rules.length > 0 && <div style={{ fontSize: 11, color: "#888", marginTop: uncheckedCount > 0 ? 2 : 0 }}>{rules.length} rule{rules.length !== 1 ? "s" : ""} to follow today</div>}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-        {([["review", "Review Losses"], ["calendar", "Calendar"], ["repeats", "Repeat Mistakes"], ["rules", "My Rules"]] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} style={{ padding: "8px 16px", borderRadius: 6, border: `1px solid ${tab === key ? "#c9a84c" : "#333"}`, background: tab === key ? "#c9a84c22" : "transparent", color: tab === key ? "#c9a84c" : "#666", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {([["checklist", "Checklist"], ["rules", "My Rules"], ["review", "Review Losses"], ["calendar", "Calendar"], ["repeats", "Repeat Mistakes"]] as const).map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key)} style={{ padding: "8px 16px", borderRadius: 6, border: `1px solid ${tab === key ? "#c9a84c" : "#333"}`, background: tab === key ? "#c9a84c22" : "transparent", color: tab === key ? "#c9a84c" : "#666", fontSize: 12, fontWeight: 600, cursor: "pointer", position: "relative" }}>
             {label}
+            {key === "checklist" && uncheckedCount > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{uncheckedCount}</span>}
+            {key === "review" && losses.filter(t => !reviews[t.id]?.reviewed).length > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: "#f59e0b", color: "#000", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{losses.filter(t => !reviews[t.id]?.reviewed).length}</span>}
           </button>
         ))}
       </div>
+
+      {/* TAB: Checklist */}
+      {tab === "checklist" && (
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Check size={16} color="#c9a84c" />
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#c9a84c" }}>Pre-Trade Checklist</h3>
+            <span style={{ fontSize: 11, color: "#555" }}>Check before every session</span>
+          </div>
+          {checklist.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, padding: "8px 10px", background: "#0a0a0a", borderRadius: 6 }}>
+              <button onClick={() => { const u = [...checklist]; u[i] = { ...u[i], checked: !u[i].checked }; saveChecklist(u); }} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${item.checked ? "#22c55e" : "#333"}`, background: item.checked ? "#22c55e22" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: 0 }}>
+                {item.checked && <Check size={14} color="#22c55e" />}
+              </button>
+              <span style={{ flex: 1, fontSize: 13, color: item.checked ? "#555" : "#ccc", textDecoration: item.checked ? "line-through" : "none" }}>{item.text}</span>
+              <button onClick={() => saveChecklist(checklist.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+            <input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} placeholder="Add checklist item..." style={{ flex: 1, background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 12, outline: "none" }} />
+            <button onClick={() => { if (newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} disabled={!newCheckItem.trim()} style={{ background: newCheckItem.trim() ? "#c9a84c" : "#333", border: "none", borderRadius: 6, color: newCheckItem.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newCheckItem.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
+              <Plus size={12} /> Add
+            </button>
+          </div>
+          {checklist.length > 0 && (
+            <button onClick={() => saveChecklist(checklist.map(c => ({ ...c, checked: false })))} style={{ marginTop: 12, background: "none", border: "1px solid #222", borderRadius: 6, color: "#555", fontSize: 11, padding: "6px 12px", cursor: "pointer" }}>
+              Reset All
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* TAB: My Rules */}
+      {tab === "rules" && (
+        <div>
+          <div style={{ background: "#111", border: "1px solid #22c55e33", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <Shield size={16} color="#22c55e" />
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#22c55e" }}>Rules to Follow Next Time</h3>
+            </div>
+            {rules.map((rule, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #22c55e" }}>
+                <span style={{ fontSize: 13, color: "#ccc", flex: 1 }}>{i + 1}. {rule}</span>
+                <button onClick={() => saveRulesList(rules.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2, flexShrink: 0 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <input value={newRule} onChange={e => setNewRule(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newRule.trim()) { saveRulesList([...rules, newRule.trim()]); setNewRule(""); } }} placeholder="Add a new rule..." style={{ flex: 1, background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 12, outline: "none" }} />
+              <button onClick={() => { if (newRule.trim()) { saveRulesList([...rules, newRule.trim()]); setNewRule(""); } }} disabled={!newRule.trim()} style={{ background: newRule.trim() ? "#22c55e" : "#333", border: "none", borderRadius: 6, color: newRule.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newRule.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
+                <Plus size={12} /> Add Rule
+              </button>
+            </div>
+          </div>
+          {allLessons.length > 0 && (
+            <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Reflections from Reviews ({allLessons.length})</div>
+              {allLessons.map((l, i) => (
+                <div key={i} style={{ padding: "8px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #c9a84c", fontSize: 12, color: "#888" }}>{l}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB: Review Losses */}
       {tab === "review" && (
@@ -212,7 +279,7 @@ export default function MistakesPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.map(trade => (
-                <ReviewCard key={trade.id} trade={trade} review={reviews[trade.id]} categories={categories} editingCats={editingCats} setEditingCats={setEditingCats} newCat={newCat} setNewCat={setNewCat} onAddCat={(cat) => { if (cat.trim() && !categories.includes(cat.trim())) saveCats([...categories, cat.trim()]); setNewCat(""); }} onDeleteCat={(cat) => saveCats(categories.filter(c => c !== cat))} onSave={(r) => saveReview(trade.id, r)} onFiles={(files) => handleFiles(files, trade.id)} onAddUrl={(url) => addImageUrl(trade.id, url)} />
+                <ReviewCard key={trade.id} trade={trade} review={reviews[trade.id]} categories={categories} editingCats={editingCats} setEditingCats={setEditingCats} newCat={newCat} setNewCat={setNewCat} onAddCat={(cat) => { if (cat.trim() && !categories.includes(cat.trim())) saveCats([...categories, cat.trim()]); setNewCat(""); }} onDeleteCat={(cat) => saveCats(categories.filter(c => c !== cat))} onSave={(r) => saveReview(trade.id, r)} onFiles={(files) => handleFiles(files, trade.id)} onAddUrl={(url) => addImageUrl(trade.id, url)} onViewTrade={() => router.push(`/trades/${trade.id}`)} />
               ))}
             </div>
           )}
@@ -245,26 +312,25 @@ export default function MistakesPage() {
             })}
           </div>
           <div style={{ display: "flex", gap: 16, marginTop: 12, fontSize: 10, color: "#555" }}>
-            <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 3, background: "#ef444433", marginRight: 4 }} />Loss (unreviewed)</span>
-            <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 3, background: "#22c55e22", marginRight: 4 }} />Loss (reviewed)</span>
+            <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 3, background: "#ef444433", marginRight: 4 }} />Unreviewed</span>
+            <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 3, background: "#22c55e22", marginRight: 4 }} />Reviewed</span>
           </div>
-
-          {/* Selected day detail */}
           {selectedCalDay && (
             <div style={{ marginTop: 16, borderTop: "1px solid #222", paddingTop: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#ccc", marginBottom: 10 }}>{selectedCalDay}</div>
-              {getDayLosses(selectedCalDay).map(t => {
+              {losses.filter(t => t.date === selectedCalDay).map(t => {
                 const r = reviews[t.id];
                 return (
-                  <div key={t.id} style={{ padding: "10px 12px", marginBottom: 6, background: "#0a0a0a", borderRadius: 8, borderLeft: `3px solid ${r?.reviewed ? "#22c55e" : "#ef4444"}` }}>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: r?.categories.length ? 6 : 0 }}>
+                  <div key={t.id} onClick={() => router.push(`/trades/${t.id}`)} style={{ padding: "10px 12px", marginBottom: 6, background: "#0a0a0a", borderRadius: 8, borderLeft: `3px solid ${r?.reviewed ? "#22c55e" : "#ef4444"}`, cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.background = "#111"} onMouseLeave={e => e.currentTarget.style.background = "#0a0a0a"}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700, color: "#fff", fontSize: 13 }}>{t.contract}</span>
                       {t.direction && <span style={{ fontSize: 10, padding: "1px 5px", borderRadius: 3, background: t.direction === "Long" ? "#22c55e22" : "#ef444422", color: t.direction === "Long" ? "#22c55e" : "#ef4444" }}>{t.direction}</span>}
                       <span style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>${t.pnl.toFixed(2)}</span>
+                      <ExternalLink size={10} color="#444" />
                       {r?.reviewed && <Check size={12} color="#22c55e" />}
                     </div>
-                    {r?.categories.length > 0 && (
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    {r?.categories && r.categories.length > 0 && (
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
                         {r.categories.map(c => <span key={c} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#ef444422", color: "#ef4444" }}>{c}</span>)}
                       </div>
                     )}
@@ -283,48 +349,12 @@ export default function MistakesPage() {
           {repeats.length === 0 ? (
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 40, textAlign: "center" }}>
               <div style={{ fontSize: 15, color: "#888", fontWeight: 600 }}>No categorized mistakes yet</div>
-              <div style={{ fontSize: 13, color: "#555", marginTop: 6 }}>Tag your losses with categories in the Review tab</div>
+              <div style={{ fontSize: 13, color: "#555", marginTop: 6 }}>Tag losses in the Review tab</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {repeats.map(([cat, { count, trades: catTrades }]) => (
-                <RepeatCard key={cat} category={cat} count={count} trades={catTrades} reviews={reviews} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB: My Rules */}
-      {tab === "rules" && (
-        <div>
-          <div style={{ background: "#111", border: "1px solid #22c55e33", borderRadius: 12, padding: 20, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <Shield size={16} color="#22c55e" />
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#22c55e" }}>Rules to Follow Next Time</h3>
-            </div>
-            {rules.map((rule, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #22c55e" }}>
-                <span style={{ fontSize: 13, color: "#ccc", flex: 1 }}>{i + 1}. {rule}</span>
-                <button onClick={() => saveRules(rules.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2, flexShrink: 0 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-              <input value={newRule} onChange={e => setNewRule(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newRule.trim()) { saveRules([...rules, newRule.trim()]); setNewRule(""); } }} placeholder="Add a new rule..." style={{ flex: 1, background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 12, outline: "none" }} />
-              <button onClick={() => { if (newRule.trim()) { saveRules([...rules, newRule.trim()]); setNewRule(""); } }} disabled={!newRule.trim()} style={{ background: newRule.trim() ? "#22c55e" : "#333", border: "none", borderRadius: 6, color: newRule.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newRule.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
-                <Plus size={12} /> Add Rule
-              </button>
-            </div>
-          </div>
-
-          {/* Lessons from reviews */}
-          {allLessons.length > 0 && (
-            <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Lessons from Reviews ({allLessons.length})</div>
-              {allLessons.map((l, i) => (
-                <div key={i} style={{ padding: "8px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #c9a84c", fontSize: 12, color: "#888" }}>{l}</div>
+                <RepeatCard key={cat} category={cat} count={count} trades={catTrades} reviews={reviews} router={router} />
               ))}
             </div>
           )}
@@ -334,7 +364,7 @@ export default function MistakesPage() {
   );
 }
 
-function RepeatCard({ category, count, trades, reviews }: { category: string; count: number; trades: Trade[]; reviews: Record<string, Review> }) {
+function RepeatCard({ category, count, trades, reviews, router }: { category: string; count: number; trades: Trade[]; reviews: Record<string, Review>; router: ReturnType<typeof import("next/navigation").useRouter> }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, overflow: "hidden" }}>
@@ -343,21 +373,20 @@ function RepeatCard({ category, count, trades, reviews }: { category: string; co
           {expanded ? <ChevronDown size={14} color="#555" /> : <ChevronRight size={14} color="#555" />}
           <span style={{ fontSize: 14, fontWeight: 700, color: "#ef4444" }}>{category}</span>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: count >= 3 ? "#ef4444" : count >= 2 ? "#f59e0b" : "#888", background: count >= 3 ? "#ef444422" : count >= 2 ? "#f59e0b22" : "#222", padding: "3px 10px", borderRadius: 20 }}>
-          {count}x
-        </span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: count >= 3 ? "#ef4444" : count >= 2 ? "#f59e0b" : "#888", background: count >= 3 ? "#ef444422" : count >= 2 ? "#f59e0b22" : "#222", padding: "3px 10px", borderRadius: 20 }}>{count}x</span>
       </div>
       {expanded && (
         <div style={{ padding: "0 16px 16px" }}>
           {trades.sort((a, b) => b.date.localeCompare(a.date)).map(t => {
             const r = reviews[t.id];
             return (
-              <div key={t.id} style={{ padding: "8px 10px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #ef4444" }}>
+              <div key={t.id} onClick={() => router.push(`/trades/${t.id}`)} style={{ padding: "8px 10px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #ef4444", cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.background = "#111"} onMouseLeave={e => e.currentTarget.style.background = "#0a0a0a"}>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, color: "#555" }}>{t.date}</span>
                   <span style={{ fontWeight: 700, color: "#fff", fontSize: 12 }}>{t.contract}</span>
                   {t.direction && <span style={{ fontSize: 10, padding: "1px 5px", borderRadius: 3, background: t.direction === "Long" ? "#22c55e22" : "#ef444422", color: t.direction === "Long" ? "#22c55e" : "#ef4444" }}>{t.direction}</span>}
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#ef4444" }}>${t.pnl.toFixed(2)}</span>
+                  <ExternalLink size={10} color="#444" />
                 </div>
                 {r?.notes && <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>{r.notes}</div>}
                 {r?.lesson && <div style={{ fontSize: 11, color: "#22c55e", marginTop: 2 }}>{r.lesson}</div>}
@@ -365,7 +394,7 @@ function RepeatCard({ category, count, trades, reviews }: { category: string; co
             );
           })}
           <div style={{ marginTop: 8, fontSize: 11, color: "#555" }}>
-            Total lost from this mistake: <span style={{ color: "#ef4444", fontWeight: 700 }}>${trades.reduce((s, t) => s + t.pnl, 0).toFixed(2)}</span>
+            Total lost: <span style={{ color: "#ef4444", fontWeight: 700 }}>${trades.reduce((s, t) => s + t.pnl, 0).toFixed(2)}</span>
           </div>
         </div>
       )}
@@ -373,8 +402,8 @@ function RepeatCard({ category, count, trades, reviews }: { category: string; co
   );
 }
 
-function ReviewCard({ trade, review, categories, editingCats, setEditingCats, newCat, setNewCat, onAddCat, onDeleteCat, onSave, onFiles, onAddUrl }: {
-  trade: Trade; review?: Review; categories: string[]; editingCats: boolean; setEditingCats: (v: boolean) => void; newCat: string; setNewCat: (v: string) => void; onAddCat: (cat: string) => void; onDeleteCat: (cat: string) => void; onSave: (r: Review) => void; onFiles: (files: FileList | null) => void; onAddUrl: (url: string) => void;
+function ReviewCard({ trade, review, categories, editingCats, setEditingCats, newCat, setNewCat, onAddCat, onDeleteCat, onSave, onFiles, onAddUrl, onViewTrade }: {
+  trade: Trade; review?: Review; categories: string[]; editingCats: boolean; setEditingCats: (v: boolean) => void; newCat: string; setNewCat: (v: string) => void; onAddCat: (cat: string) => void; onDeleteCat: (cat: string) => void; onSave: (r: Review) => void; onFiles: (files: FileList | null) => void; onAddUrl: (url: string) => void; onViewTrade: () => void;
 }) {
   const [expanded, setExpanded] = useState(!review?.reviewed);
   const [imgUrl, setImgUrl] = useState("");
@@ -386,8 +415,8 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
 
   return (
     <div style={{ background: "#111", border: `1px solid ${r.reviewed ? "#22c55e33" : "#222"}`, borderRadius: 12, overflow: "hidden" }}>
-      <div onClick={() => setExpanded(!expanded)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", background: "#0a0a0a" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#0a0a0a" }}>
+        <div onClick={() => setExpanded(!expanded)} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", cursor: "pointer", flex: 1 }}>
           <span style={{ fontSize: 12, color: "#555" }}>{trade.date}</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{trade.contract}</span>
           {trade.direction && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: trade.direction === "Long" ? "#22c55e22" : "#ef444422", color: trade.direction === "Long" ? "#22c55e" : "#ef4444", fontWeight: 600 }}>{trade.direction}</span>}
@@ -395,9 +424,14 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
           <span style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>${trade.pnl.toFixed(2)}</span>
           {trade.session && <span style={{ fontSize: 11, color: "#444" }}>{trade.session}</span>}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={onViewTrade} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", padding: 4 }} onMouseEnter={e => e.currentTarget.style.color = "#c9a84c"} onMouseLeave={e => e.currentTarget.style.color = "#444"} title="View Trade">
+            <ExternalLink size={13} />
+          </button>
           {r.reviewed && <Check size={14} color="#22c55e" />}
-          {expanded ? <ChevronDown size={14} color="#555" /> : <ChevronRight size={14} color="#555" />}
+          <div onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer", padding: 4 }}>
+            {expanded ? <ChevronDown size={14} color="#555" /> : <ChevronRight size={14} color="#555" />}
+          </div>
         </div>
       </div>
 
@@ -407,21 +441,13 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
               <span style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Mistake Category</span>
-              <button onClick={() => setEditingCats(!editingCats)} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", fontSize: 10 }}>
-                {editingCats ? "Done" : "Edit"}
-              </button>
+              <button onClick={() => setEditingCats(!editingCats)} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", fontSize: 10 }}>{editingCats ? "Done" : "Edit"}</button>
             </div>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
               {categories.map(cat => (
                 <div key={cat} style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <button onClick={() => toggleCat(cat)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${r.categories.includes(cat) ? "#ef4444" : "#222"}`, background: r.categories.includes(cat) ? "#ef444422" : "transparent", color: r.categories.includes(cat) ? "#ef4444" : "#555", fontSize: 10, fontWeight: 600, cursor: "pointer" }}>
-                    {cat}
-                  </button>
-                  {editingCats && (
-                    <button onClick={() => onDeleteCat(cat)} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 0 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
-                      <X size={10} />
-                    </button>
-                  )}
+                  <button onClick={() => toggleCat(cat)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${r.categories.includes(cat) ? "#ef4444" : "#222"}`, background: r.categories.includes(cat) ? "#ef444422" : "transparent", color: r.categories.includes(cat) ? "#ef4444" : "#555", fontSize: 10, fontWeight: 600, cursor: "pointer" }}>{cat}</button>
+                  {editingCats && <button onClick={() => onDeleteCat(cat)} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 0 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}><X size={10} /></button>}
                 </div>
               ))}
               {editingCats && (
@@ -433,25 +459,21 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
             </div>
           </div>
 
-          {/* What went wrong */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 10, color: "#ef4444", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>What went wrong?</div>
             <textarea value={r.notes} onChange={e => update({ notes: e.target.value })} placeholder="Describe what happened..." rows={2} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 10px", color: "#fff", fontSize: 12, outline: "none", resize: "vertical", lineHeight: 1.5, boxSizing: "border-box" }} />
           </div>
 
-          {/* What should I have done */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 10, color: "#f59e0b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>What should I have done?</div>
             <textarea value={r.what_to_improve} onChange={e => update({ what_to_improve: e.target.value })} placeholder="How would I handle this differently..." rows={2} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 10px", color: "#fff", fontSize: 12, outline: "none", resize: "vertical", lineHeight: 1.5, boxSizing: "border-box" }} />
           </div>
 
-          {/* Lesson */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Lesson / Rule to Remember</div>
-            <input value={r.lesson} onChange={e => update({ lesson: e.target.value })} placeholder="One rule to prevent this..." style={{ width: "100%", background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 10px", color: "#fff", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+            <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Reflection</div>
+            <input value={r.lesson} onChange={e => update({ lesson: e.target.value })} placeholder="What did I learn from this trade..." style={{ width: "100%", background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 10px", color: "#fff", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
           </div>
 
-          {/* Screenshots */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
               <Camera size={12} color="#555" />
@@ -476,11 +498,8 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
             </div>
           </div>
 
-          {/* Reviewed */}
           <button onClick={() => update({ reviewed: !r.reviewed })} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0, color: r.reviewed ? "#22c55e" : "#555", fontSize: 12, fontWeight: 600 }}>
-            <span style={{ width: 20, height: 20, borderRadius: 4, border: `1px solid ${r.reviewed ? "#22c55e" : "#333"}`, background: r.reviewed ? "#22c55e22" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {r.reviewed && <Check size={12} />}
-            </span>
+            <span style={{ width: 20, height: 20, borderRadius: 4, border: `1px solid ${r.reviewed ? "#22c55e" : "#333"}`, background: r.reviewed ? "#22c55e22" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>{r.reviewed && <Check size={12} />}</span>
             Reviewed
           </button>
         </div>

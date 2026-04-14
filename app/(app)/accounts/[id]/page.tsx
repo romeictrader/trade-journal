@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, Account } from "@/lib/types";
+import { calculateDrawdown, DRAWDOWN_TYPES, DrawdownConfig } from "@/lib/drawdownEngine";
 import Link from "next/link";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -370,21 +371,20 @@ export default function AccountDashboard() {
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
   const balance = account.starting_balance + totalPnl;
 
-  // === Trailing drawdown calculation ===
-  // Build end-of-day P&L map and compute High Water Mark
-  const eodPnl: Record<string, number> = {};
-  for (const t of trades) eodPnl[t.date] = (eodPnl[t.date] ?? 0) + t.pnl;
-  let hwm = account.starting_balance;
-  let runningBal = account.starting_balance;
-  for (const date of Object.keys(eodPnl).sort()) {
-    runningBal += eodPnl[date];
-    if (runningBal > hwm) hwm = runningBal;
-  }
-  // Trailing floor: follows HWM upward, locks permanently at starting_balance
-  const trailingLimit = Math.min(hwm - account.max_drawdown, account.starting_balance);
-  // Effective peak caps at starting_balance + max_drawdown (once floor locks, drawdown measures from there)
-  const effectivePeak = Math.min(hwm, account.starting_balance + account.max_drawdown);
-  const maxDD = Math.max(0, effectivePeak - balance);
+  // === Drawdown engine ===
+  const todayDate = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+  const ddConfig: DrawdownConfig = {
+    drawdownType: account.drawdown_type ?? 3,
+    startingBalance: account.starting_balance,
+    drawdownAmount: account.max_drawdown,
+    drawdownPercent: account.drawdown_percent,
+    lockTriggerBalance: account.lock_trigger_balance,
+    bufferTarget: account.buffer_target,
+    dailyLossLimit: account.daily_loss_enabled !== false ? account.daily_loss_limit : 0,
+  };
+  const dd = calculateDrawdown(ddConfig, trades.map(t => ({ date: t.date, pnl: t.pnl })), todayDate);
+  const trailingLimit = dd.floor;
+  const maxDD = dd.currentDD;
 
   const rrTrades = trades.filter((t) => t.rr != null);
   const avgRR = rrTrades.length > 0 ? rrTrades.reduce((s, t) => s + (t.rr ?? 0), 0) / rrTrades.length : 0;
@@ -404,8 +404,9 @@ export default function AccountDashboard() {
   const sortedDates = Object.keys(dailyMap).sort().slice(-30);
   const dailyData = sortedDates.map((d) => ({ date: d.slice(5), pnl: dailyMap[d] }));
 
+  const ddTypeName = DRAWDOWN_TYPES.find(t => t.value === (account.drawdown_type ?? 3))?.short ?? "EOD Trailing";
   const ruleItems = [
-    account.daily_loss_enabled !== false && { label: "Daily Loss", current: Math.abs(Math.min(todayPnl, 0)), limit: account.daily_loss_limit, inverted: true },
+    account.daily_loss_enabled !== false && { label: "Daily Loss", current: dd.dailyLoss, limit: account.daily_loss_limit, inverted: true },
     account.max_drawdown_enabled !== false && { label: "Max Drawdown", current: maxDD, limit: account.max_drawdown, inverted: true },
     account.profit_target_enabled !== false && { label: "Profit Target", current: maxDD > 0 ? 0 : Math.max(totalPnl, 0), limit: account.profit_target, inverted: false },
   ].filter(Boolean) as { label: string; current: number; limit: number; inverted: boolean }[];
@@ -452,8 +453,8 @@ export default function AccountDashboard() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 14, color: "#888", fontWeight: 600 }}>Prop Firm Rules</h3>
           {account.max_drawdown_enabled !== false && (
-            <span style={{ fontSize: 11, color: trailingLimit >= account.starting_balance ? "#c9a84c" : "#555", fontWeight: 600 }}>
-              {trailingLimit >= account.starting_balance ? "Floor Locked" : "Trailing"}
+            <span style={{ fontSize: 11, color: dd.isLocked || dd.breached ? "#c9a84c" : "#555", fontWeight: 600 }}>
+              {dd.breached ? "BREACHED" : dd.isLocked ? "Floor Locked" : ddTypeName}
             </span>
           )}
         </div>

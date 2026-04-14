@@ -33,7 +33,8 @@ export default function MistakesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"All" | "Unreviewed" | "Reviewed">("All");
   const [userId, setUserId] = useState("");
-  const [tab, setTab] = useState<"checklist" | "rules" | "review" | "calendar" | "repeats">("checklist");
+  const [tab, setTab] = useState<"rules" | "review" | "calendar" | "repeats">("rules");
+  const [tradeImages, setTradeImages] = useState<Record<string, string[]>>({});
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
@@ -55,7 +56,29 @@ export default function MistakesPage() {
         supabase.from("trades").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("mistake_entries").select("*").eq("user_id", user.id),
       ]);
-      if (td) setTrades(td);
+      if (td) {
+        setTrades(td);
+        // Load trade screenshots for losing trades
+        const lossIds = td.filter((t: Trade) => t.pnl < 0).map((t: Trade) => t.id);
+        if (lossIds.length > 0) {
+          const { data: imgs } = await supabase.from("trade_images").select("trade_id, storage_path, url").in("trade_id", lossIds);
+          if (imgs && imgs.length > 0) {
+            const imgMap: Record<string, string[]> = {};
+            for (const img of imgs) {
+              let url = img.url ?? "";
+              if (img.storage_path) {
+                const { data: s } = await supabase.storage.from("journal-images").createSignedUrl(img.storage_path, 3600);
+                url = s?.signedUrl ?? url;
+              }
+              if (url) {
+                if (!imgMap[img.trade_id]) imgMap[img.trade_id] = [];
+                imgMap[img.trade_id].push(url);
+              }
+            }
+            setTradeImages(imgMap);
+          }
+        }
+      }
       if (rd) {
         const map: Record<string, Review> = {};
         for (const r of rd) {
@@ -182,55 +205,54 @@ export default function MistakesPage() {
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        {([["checklist", "Checklist"], ["rules", "My Rules"], ["review", "Review Losses"], ["calendar", "Calendar"], ["repeats", "Repeat Mistakes"]] as const).map(([key, label]) => (
+        {([["rules", "My Rules"], ["review", "Review Losses"], ["calendar", "Calendar"], ["repeats", "Repeat Mistakes"]] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{ padding: "8px 16px", borderRadius: 6, border: `1px solid ${tab === key ? "#c9a84c" : "#333"}`, background: tab === key ? "#c9a84c22" : "transparent", color: tab === key ? "#c9a84c" : "#666", fontSize: 12, fontWeight: 600, cursor: "pointer", position: "relative" }}>
             {label}
-            {key === "checklist" && uncheckedCount > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{uncheckedCount}</span>}
+            {key === "rules" && uncheckedCount > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{uncheckedCount}</span>}
             {key === "review" && losses.filter(t => !reviews[t.id]?.reviewed).length > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: "#f59e0b", color: "#000", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{losses.filter(t => !reviews[t.id]?.reviewed).length}</span>}
           </button>
         ))}
       </div>
 
-      {/* TAB: Checklist */}
-      {tab === "checklist" && (
-        <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Check size={16} color="#c9a84c" />
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#c9a84c" }}>Pre-Trade Checklist</h3>
-            <span style={{ fontSize: 11, color: "#555" }}>Check before every session</span>
-          </div>
-          {checklist.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, padding: "8px 10px", background: "#0a0a0a", borderRadius: 6 }}>
-              <button onClick={() => { const u = [...checklist]; u[i] = { ...u[i], checked: !u[i].checked }; saveChecklist(u); }} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${item.checked ? "#22c55e" : "#333"}`, background: item.checked ? "#22c55e22" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: 0 }}>
-                {item.checked && <Check size={14} color="#22c55e" />}
-              </button>
-              <span style={{ flex: 1, fontSize: 13, color: item.checked ? "#555" : "#ccc", textDecoration: item.checked ? "line-through" : "none" }}>{item.text}</span>
-              <button onClick={() => saveChecklist(checklist.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-            <input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} placeholder="Add checklist item..." style={{ flex: 1, background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 12, outline: "none" }} />
-            <button onClick={() => { if (newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} disabled={!newCheckItem.trim()} style={{ background: newCheckItem.trim() ? "#c9a84c" : "#333", border: "none", borderRadius: 6, color: newCheckItem.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newCheckItem.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
-              <Plus size={12} /> Add
-            </button>
-          </div>
-          {checklist.length > 0 && (
-            <button onClick={() => saveChecklist(checklist.map(c => ({ ...c, checked: false })))} style={{ marginTop: 12, background: "none", border: "1px solid #222", borderRadius: 6, color: "#555", fontSize: 11, padding: "6px 12px", cursor: "pointer" }}>
-              Reset All
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* TAB: My Rules */}
+      {/* TAB: My Rules (includes checklist as reminders) */}
       {tab === "rules" && (
         <div>
+          {/* Pre-trade checklist / reminders */}
+          <div style={{ background: "#111", border: "1px solid #c9a84c33", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <Bell size={16} color="#c9a84c" />
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#c9a84c" }}>Pre-Trade Reminders</h3>
+              <span style={{ fontSize: 11, color: "#555" }}>Check before every session</span>
+            </div>
+            {checklist.map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, padding: "8px 10px", background: "#0a0a0a", borderRadius: 6 }}>
+                <button onClick={() => { const u = [...checklist]; u[i] = { ...u[i], checked: !u[i].checked }; saveChecklist(u); }} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${item.checked ? "#22c55e" : "#333"}`, background: item.checked ? "#22c55e22" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: 0 }}>
+                  {item.checked && <Check size={14} color="#22c55e" />}
+                </button>
+                <span style={{ flex: 1, fontSize: 13, color: item.checked ? "#555" : "#ccc", textDecoration: item.checked ? "line-through" : "none" }}>{item.text}</span>
+                <button onClick={() => saveChecklist(checklist.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#333", cursor: "pointer", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = "#ef4444"} onMouseLeave={e => e.currentTarget.style.color = "#333"}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} placeholder="Add reminder..." style={{ flex: 1, background: "#0a0a0a", border: "1px solid #222", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 12, outline: "none" }} />
+              <button onClick={() => { if (newCheckItem.trim()) { saveChecklist([...checklist, { text: newCheckItem.trim(), checked: false }]); setNewCheckItem(""); } }} disabled={!newCheckItem.trim()} style={{ background: newCheckItem.trim() ? "#c9a84c" : "#333", border: "none", borderRadius: 6, color: newCheckItem.trim() ? "#000" : "#666", fontWeight: 700, fontSize: 12, padding: "8px 14px", cursor: newCheckItem.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 4 }}>
+                <Plus size={12} /> Add
+              </button>
+            </div>
+            {checklist.length > 0 && (
+              <button onClick={() => saveChecklist(checklist.map(c => ({ ...c, checked: false })))} style={{ marginTop: 12, background: "none", border: "1px solid #222", borderRadius: 6, color: "#555", fontSize: 11, padding: "6px 12px", cursor: "pointer" }}>
+                Reset All
+              </button>
+            )}
+          </div>
+
+          {/* Rules */}
           <div style={{ background: "#111", border: "1px solid #22c55e33", borderRadius: 12, padding: 20, marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <Shield size={16} color="#22c55e" />
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#22c55e" }}>Rules to Follow Next Time</h3>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#22c55e" }}>Rules to Follow</h3>
             </div>
             {rules.map((rule, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px", marginBottom: 4, background: "#0a0a0a", borderRadius: 6, borderLeft: "3px solid #22c55e" }}>
@@ -247,6 +269,8 @@ export default function MistakesPage() {
               </button>
             </div>
           </div>
+
+          {/* Reflections from reviews */}
           {allLessons.length > 0 && (
             <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Reflections from Reviews ({allLessons.length})</div>
@@ -279,7 +303,7 @@ export default function MistakesPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.map(trade => (
-                <ReviewCard key={trade.id} trade={trade} review={reviews[trade.id]} categories={categories} editingCats={editingCats} setEditingCats={setEditingCats} newCat={newCat} setNewCat={setNewCat} onAddCat={(cat) => { if (cat.trim() && !categories.includes(cat.trim())) saveCats([...categories, cat.trim()]); setNewCat(""); }} onDeleteCat={(cat) => saveCats(categories.filter(c => c !== cat))} onSave={(r) => saveReview(trade.id, r)} onFiles={(files) => handleFiles(files, trade.id)} onAddUrl={(url) => addImageUrl(trade.id, url)} onViewTrade={() => router.push(`/trades/${trade.id}`)} />
+                <ReviewCard key={trade.id} trade={trade} review={reviews[trade.id]} categories={categories} editingCats={editingCats} setEditingCats={setEditingCats} newCat={newCat} setNewCat={setNewCat} onAddCat={(cat) => { if (cat.trim() && !categories.includes(cat.trim())) saveCats([...categories, cat.trim()]); setNewCat(""); }} onDeleteCat={(cat) => saveCats(categories.filter(c => c !== cat))} onSave={(r) => saveReview(trade.id, r)} onFiles={(files) => handleFiles(files, trade.id)} onAddUrl={(url) => addImageUrl(trade.id, url)} onViewTrade={() => router.push(`/trades/${trade.id}`)} tradeScreenshots={tradeImages[trade.id] ?? []} />
               ))}
             </div>
           )}
@@ -402,8 +426,8 @@ function RepeatCard({ category, count, trades, reviews, router }: { category: st
   );
 }
 
-function ReviewCard({ trade, review, categories, editingCats, setEditingCats, newCat, setNewCat, onAddCat, onDeleteCat, onSave, onFiles, onAddUrl, onViewTrade }: {
-  trade: Trade; review?: Review; categories: string[]; editingCats: boolean; setEditingCats: (v: boolean) => void; newCat: string; setNewCat: (v: string) => void; onAddCat: (cat: string) => void; onDeleteCat: (cat: string) => void; onSave: (r: Review) => void; onFiles: (files: FileList | null) => void; onAddUrl: (url: string) => void; onViewTrade: () => void;
+function ReviewCard({ trade, review, categories, editingCats, setEditingCats, newCat, setNewCat, onAddCat, onDeleteCat, onSave, onFiles, onAddUrl, onViewTrade, tradeScreenshots }: {
+  trade: Trade; review?: Review; categories: string[]; editingCats: boolean; setEditingCats: (v: boolean) => void; newCat: string; setNewCat: (v: string) => void; onAddCat: (cat: string) => void; onDeleteCat: (cat: string) => void; onSave: (r: Review) => void; onFiles: (files: FileList | null) => void; onAddUrl: (url: string) => void; onViewTrade: () => void; tradeScreenshots: string[];
 }) {
   const [expanded, setExpanded] = useState(!review?.reviewed);
   const [imgUrl, setImgUrl] = useState("");
@@ -437,6 +461,18 @@ function ReviewCard({ trade, review, categories, editingCats, setEditingCats, ne
 
       {expanded && (
         <div style={{ padding: "12px 16px 16px" }}>
+          {/* Trade screenshots from original trade */}
+          {tradeScreenshots.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Trade Screenshots</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {tradeScreenshots.map((url, i) => (
+                  <img key={i} src={url} alt="" onClick={() => window.open(url, "_blank")} style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 6, border: "1px solid #222", cursor: "pointer" }} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Categories */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>

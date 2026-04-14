@@ -8,6 +8,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/trades": "Trade Log",
   "/calendar": "Calendar",
   "/journal": "Narrative / Bias",
+  "/mistakes": "Mistakes",
   "/analysis": "Analysis",
   "/psychology": "Psychology",
   "/settings": "Settings",

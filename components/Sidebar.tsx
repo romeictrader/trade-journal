@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  AlertTriangle,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,6 +31,7 @@ const navItems = [
   { label: "Trade Log", icon: BookOpen, href: "/trades" },
   { label: "Combined Calendar", icon: Calendar, href: "/calendar" },
   { label: "Narrative / Bias", icon: FileText, href: "/journal" },
+  { label: "Mistakes", icon: AlertTriangle, href: "/mistakes" },
   { label: "Analysis", icon: BarChart2, href: "/analysis" },
   { label: "Psychology", icon: Brain, href: "/psychology" },
 ];

@@ -106,6 +106,7 @@ export default function AddAccountModal({ onClose, onSaved, account }: AddAccoun
     const ddType = selectedPlan?.drawdownType ?? 2;
     const payload: Record<string, unknown> = {
       prop_firm: propFirm,
+      plan_key: selectedPlan?.key ?? null,
       account_name: accountName,
       account_size: accountSize,
       daily_loss_limit: preset.daily,

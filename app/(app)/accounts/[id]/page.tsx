@@ -393,15 +393,15 @@ export default function AccountDashboard() {
   const acctSizeStr = String(account.account_size);
   const matchedPlan = (() => {
     if (!matchedFirm) return null;
-    // 1. Exact match on DD + PT + size
+    // 1. Direct match by stored plan_key
+    if (account.plan_key) {
+      const byKey = matchedFirm.plans.find(p => p.key === account.plan_key);
+      if (byKey) return byKey;
+    }
+    // 2. Fallback: match on DD + PT + size
     for (const plan of matchedFirm.plans) {
       const preset = plan.sizes[acctSizeStr];
       if (preset && preset.dd === account.max_drawdown && preset.pt === account.profit_target) return plan;
-    }
-    // 2. Match on just DD + size (PT might have changed in Settings)
-    for (const plan of matchedFirm.plans) {
-      const preset = plan.sizes[acctSizeStr];
-      if (preset && preset.dd === account.max_drawdown) return plan;
     }
     // 3. Any plan that has this size
     for (const plan of matchedFirm.plans) {

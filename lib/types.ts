@@ -51,10 +51,11 @@ export interface Account {
   max_drawdown_enabled: boolean;
   profit_target_enabled: boolean;
   color: string;
-  drawdown_type?: number;          // 1-8, default 3 (EOD Trailing)
-  drawdown_percent?: number;       // type 6 only
-  lock_trigger_balance?: number;   // type 5 only
-  buffer_target?: number;          // type 7 only
+  plan_key?: string;                 // e.g. "flex", "pro", "standard"
+  drawdown_type?: number;          // 1-7, default 2 (EOD Trailing)
+  drawdown_percent?: number;       // type 5 only
+  lock_trigger_balance?: number;   // type 4 only
+  buffer_target?: number;          // type 6 only
   created_at?: string;
 }
 

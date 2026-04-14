@@ -36,6 +36,12 @@ export default function TradeViewPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape" && !editing) router.back(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [router, editing]);
+
   const load = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase.from("trades").select("*").eq("id", id).single();

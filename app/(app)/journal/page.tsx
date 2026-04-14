@@ -348,16 +348,6 @@ export default function JournalPage() {
                 </div>
               )}
 
-              {/* Explanation */}
-              {explanation && (
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Explanation / Review</div>
-                  <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 10, padding: "14px 16px", color: "#ccc", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                    {explanation}
-                  </div>
-                </div>
-              )}
-
               {/* Photos */}
               {imageUrls.filter(Boolean).length > 0 && (
                 <div style={{ marginBottom: 24 }}>
@@ -402,18 +392,6 @@ export default function JournalPage() {
                   value={narrative}
                   onChange={(e) => { setNarrative(e.target.value); }}
                   placeholder="Write your trade narrative, market bias, key levels, planned setups..."
-                  rows={6}
-                  style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", lineHeight: 1.6, boxSizing: "border-box" }}
-                />
-              </div>
-
-              {/* Explanation */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Explanation / Review</div>
-                <textarea
-                  value={explanation}
-                  onChange={(e) => { setExplanation(e.target.value); }}
-                  placeholder="Post-session review — what went well, what went wrong, lessons learned..."
                   rows={6}
                   style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", lineHeight: 1.6, boxSizing: "border-box" }}
                 />

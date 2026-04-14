@@ -270,6 +270,12 @@ export default function AccountDashboard() {
   const id = params.id as string;
   const { firmData } = useFirmData();
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") router.back(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [router]);
+
   async function deleteTrade(tradeId: string) {
     if (!confirm("Delete this trade?")) return;
     const supabase = createClient();
